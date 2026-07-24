@@ -61,6 +61,20 @@ Why the baseline loses, and why that's informative: its only weather input is a 
 
 Alongside the backtest, `predictedge forecast` (run daily by CI) issues live day-ahead forecasts for open markets into `forecasts/weather.csv`, append-only — the commit timestamp before resolution is the pre-registration.
 
+## Second result: the market is already sharp at the open
+
+Same design swept across earlier decision times (`predictedge sweep`). Day-before snapshots use the 2-day-lead forecast and a 2-day error lag, so every input stays strictly pre-snapshot:
+
+| snapshot | lead | events | Brier model | Brier market | ΔBrier | 95% CI | p |
+|---|---|---|---|---|---|---|---|
+| D−1 16:00Z (open + 2h) | 2d | 404 | 0.765 | 0.647 | +0.118 | [+0.089, +0.148] | < 0.0001 |
+| D−1 21:00Z | 2d | 408 | 0.765 | 0.636 | +0.128 | [+0.097, +0.160] | < 0.0001 |
+| D 01:00Z | 1d | 408 | 0.768 | 0.626 | +0.142 | [+0.109, +0.176] | < 0.0001 |
+| D 05:00Z | 1d | 408 | 0.768 | 0.602 | +0.166 | [+0.130, +0.203] | < 0.0001 |
+| D 09:00Z (primary) | 1d | 407 | 0.765 | 0.581 | +0.184 | [+0.147, +0.220] | < 0.0001 |
+
+Two findings. First, there is **no soft window**: two hours after these markets open, with thin books, they already beat the public-NWP baseline decisively. Second, the market's Brier improves monotonically as the event approaches (0.647 → 0.581) while the baseline's stays flat — the widening gap is a direct measurement of information flowing into the price over the ~17 hours before the event day starts. Whatever traders are using (fresher model runs, human synthesis), they price it in early and keep accruing it.
+
 ## Reproduce
 
 ```

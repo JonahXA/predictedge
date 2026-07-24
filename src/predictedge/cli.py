@@ -13,6 +13,7 @@ def main() -> None:
     sub.add_parser("evaluate", help="aggregate Brier/log-loss summary")
     sub.add_parser("significance", help="bootstrap + Diebold-Mariano on the gap")
     sub.add_parser("forecast", help="issue pre-registered forecasts for open markets")
+    sub.add_parser("sweep", help="model-vs-market gap across decision-time snapshots")
     args = ap.parse_args()
 
     if args.cmd == "ingest":
@@ -30,6 +31,9 @@ def main() -> None:
     elif args.cmd == "forecast":
         from . import forecast
         forecast.run()
+    elif args.cmd == "sweep":
+        from . import backtest
+        backtest.sweep()
 
 
 if __name__ == "__main__":

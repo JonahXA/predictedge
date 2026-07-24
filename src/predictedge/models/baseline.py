@@ -32,8 +32,8 @@ class ErrorState:
     """Walk-forward accumulator of (official_high - forecast) errors for
     one city. Pure function of the errors added so far."""
 
-    def __init__(self) -> None:
-        self.errors: list[float] = []
+    def __init__(self, errors: list[float] | None = None) -> None:
+        self.errors: list[float] = list(errors) if errors else []
 
     def add(self, error: float) -> None:
         self.errors.append(error)

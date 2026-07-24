@@ -10,7 +10,7 @@ integrated over the same bins.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
@@ -24,8 +24,11 @@ def event_date(event_ticker: str) -> date:
     return datetime.strptime(tail, "%y%b%d").date()
 
 
-def snapshot_ts(d: date) -> int:
-    return int(datetime(d.year, d.month, d.day, SNAPSHOT_UTC_HOUR, tzinfo=timezone.utc).timestamp())
+def snapshot_ts(d: date, day_offset: int = 0, hour: int = SNAPSHOT_UTC_HOUR) -> int:
+    """Snapshot instant for an event on day d: `hour` UTC on d+day_offset
+    (day_offset=-1 → the day before the event)."""
+    base = datetime(d.year, d.month, d.day, hour, tzinfo=timezone.utc) + timedelta(days=day_offset)
+    return int(base.timestamp())
 
 
 def implied_result(strike_type: str, floor: float, cap: float, value: float) -> str:
