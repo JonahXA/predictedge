@@ -58,13 +58,26 @@ def _flatten_candle(c: dict) -> dict:
     return row
 
 
-def ingest_series(series_ticker: str) -> tuple[int, int]:
+def _archived_candle_tickers() -> set[str]:
+    path = ARCHIVE_DIR / "candles.parquet"
+    if not path.exists():
+        return set()
+    return set(pd.read_parquet(path, columns=["ticker"])["ticker"].unique())
+
+
+def ingest_series(series_ticker: str, have_candles: set[str] | None = None) -> tuple[int, int]:
     """Fetch all visible settled markets for one series plus hourly
-    candles, and merge into the archive. Returns (n_markets, n_candles)."""
+    candles, and merge into the archive. Settled markets are immutable,
+    so candles are only fetched for tickers not already archived —
+    a daily run touches ~one day's worth of new markets.
+    Returns (n_markets, n_new_candles)."""
     markets = kalshi.settled_markets(series_ticker)
+    have = _archived_candle_tickers() if have_candles is None else have_candles
     rows, candle_rows = [], []
     for m in markets:
         rows.append({c: m.get(c) for c in MARKET_COLS} | {"series_ticker": series_ticker})
+        if m["ticker"] in have:
+            continue
         for c in kalshi.candlesticks(series_ticker, m):
             candle_rows.append({"ticker": m["ticker"]} | _flatten_candle(c))
     if rows:
