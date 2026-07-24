@@ -12,6 +12,7 @@ def main() -> None:
     sub.add_parser("backtest", help="walk-forward backtest vs the market")
     sub.add_parser("evaluate", help="aggregate Brier/log-loss summary")
     sub.add_parser("significance", help="bootstrap + Diebold-Mariano on the gap")
+    sub.add_parser("forecast", help="issue pre-registered forecasts for open markets")
     args = ap.parse_args()
 
     if args.cmd == "ingest":
@@ -26,6 +27,9 @@ def main() -> None:
     elif args.cmd == "significance":
         from . import significance
         significance.run()
+    elif args.cmd == "forecast":
+        from . import forecast
+        forecast.run()
 
 
 if __name__ == "__main__":

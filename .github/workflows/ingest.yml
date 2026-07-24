@@ -25,6 +25,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -e .
       - run: predictedge ingest
+      - run: predictedge forecast
       - name: Commit archive updates
         run: |
           git config user.name "predictedge-bot"
