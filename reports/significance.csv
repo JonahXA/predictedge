@@ -1,0 +1,5 @@
+comparison,sample,metric,events,dates,mean_diff,ci_low,ci_high,p_bootstrap,dm_stat,p_dm
+baseline model vs market (de-vigged mid),primary,brier,407,68,0.18359,0.14754,0.22146,0.0,7.942,0.0
+baseline model vs market (de-vigged mid),all quoted,brier,408,68,0.18394,0.14656,0.22058,0.0,7.954,0.0
+baseline model vs market (de-vigged mid),primary,logloss,407,68,0.51745,0.41749,0.62079,0.0,8.897,0.0
+baseline model vs market (de-vigged mid),all quoted,logloss,408,68,0.51764,0.41866,0.62025,0.0,8.94,0.0

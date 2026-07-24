@@ -35,13 +35,22 @@ def _ts(iso: str) -> int:
     return int(datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp())
 
 
+_MAX_PERIODS = 4900  # Kalshi 400s when a request spans too many periods
+
+
 def candlesticks(series_ticker: str, market: dict, period_minutes: int = 60) -> list[dict]:
     """Hourly candles (trade OHLC + yes bid/ask) over a settled market's
-    whole life. Settled markets are immutable, so these cache forever."""
+    whole life, chunked so long-lived markets (e.g. 9-month payrolls
+    contracts) stay under the API's per-request period limit. Settled
+    markets are immutable, so these cache forever."""
     start = _ts(market["open_time"])
     end = _ts(market["close_time"])
-    d = get_json(
-        f"{KALSHI_BASE}/series/{series_ticker}/markets/{market['ticker']}/candlesticks",
-        {"start_ts": start, "end_ts": end, "period_interval": period_minutes},
-    )
-    return d.get("candlesticks", [])
+    chunk = _MAX_PERIODS * period_minutes * 60
+    out: list[dict] = []
+    for s in range(start, end + 1, chunk):
+        d = get_json(
+            f"{KALSHI_BASE}/series/{series_ticker}/markets/{market['ticker']}/candlesticks",
+            {"start_ts": s, "end_ts": min(s + chunk - 1, end), "period_interval": period_minutes},
+        )
+        out.extend(d.get("candlesticks", []))
+    return out

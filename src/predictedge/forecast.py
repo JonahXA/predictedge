@@ -14,6 +14,7 @@ built from settled events strictly before today.
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -72,9 +73,14 @@ def run() -> pd.DataFrame:
             ms[col] = pd.to_numeric(ms[col], errors="coerce")
         highs = _live_highs(cfg["lat"], cfg["lon"], cfg["tz"])
         state = _error_state(st, today)
+        # Pure day-ahead issuance, matching the backtest design: only
+        # events whose local calendar day hasn't started yet. Issuing on
+        # a day already in progress would let the forecast (and the
+        # market quote next to it) see part of the outcome.
+        local_today = datetime.now(ZoneInfo(cfg["tz"])).date()
         for ev, g in ms.groupby("event_ticker"):
             ev_date = market.event_date(ev)
-            if ev_date not in highs:
+            if ev_date <= local_today or ev_date not in highs:
                 continue
             g = g.sort_values(["floor_strike", "cap_strike"], na_position="first")
             mu = highs[ev_date] + state.bias

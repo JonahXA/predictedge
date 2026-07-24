@@ -140,4 +140,15 @@ def evaluate() -> pd.DataFrame:
     out = pd.DataFrame(rows).round(4)
     out.to_csv(REPORTS_DIR / "evaluation.csv", index=False)
     print(out.to_string(index=False))
+
+    by_city = (
+        bt.groupby("city")
+        .agg(events=("brier_model", "size"),
+             brier_model=("brier_model", "mean"), brier_market=("brier_market", "mean"),
+             logloss_model=("logloss_model", "mean"), logloss_market=("logloss_market", "mean"))
+        .round(4)
+    )
+    by_city.to_csv(REPORTS_DIR / "evaluation_by_city.csv")
+    print()
+    print(by_city.to_string())
     return out

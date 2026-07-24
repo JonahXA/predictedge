@@ -39,9 +39,27 @@ For each city-day event:
 
 Causality notes: the walk-forward error state for day D uses only days strictly before D (a day's high is publicly observable from hourly obs by local midnight, hours before the snapshot). The day-ahead forecast for D was issued on D−1. `tests/test_causality.py` proves the walk-forward state is invariant to future data.
 
-## First result
+## First result (2026-07-24): the market wins, decisively
 
-*(pending — filled in by the first full backtest run)*
+408 city-day events (six cities × 68 days, 2026-05-17 → 2026-07-23), walk-forward, every event scored for both forecasters on identical bins:
+
+| sample | events | Brier model | Brier market | log loss model | log loss market |
+|---|---|---|---|---|---|
+| primary (all bins quoted, spread ≤ 15¢) | 407 | 0.765 | **0.581** | 1.583 | **1.066** |
+| all quoted events | 408 | 0.765 | **0.581** | 1.583 | **1.065** |
+
+Significance of the gap (positive = market better), clustered by date:
+
+| metric | mean diff | 95% CI (bootstrap) | DM stat | p |
+|---|---|---|---|---|
+| Brier | +0.184 | [+0.148, +0.221] | 7.94 | < 0.0001 |
+| log loss | +0.517 | [+0.417, +0.621] | 8.90 | < 0.0001 |
+
+The market beats the day-ahead-NWP baseline in every one of the six cities, and picks the correct bin as its modal outcome 52% of the time vs the model's 37%. **This gap is real, not noise — and it is the honest starting line.**
+
+Why the baseline loses, and why that's informative: its only weather input is a ~24-hour-old forecast run (`previous_day1`, day-ahead MAE ≈ 2.3°F), while traders at the 09:00 UTC snapshot have overnight model runs (00Z) plus human synthesis. Kalshi's weather markets, at least at this snapshot time, are **not** the soft target the thesis hoped for — they price in fresher information than a naive public baseline does. The measured gap (ΔBrier 0.18) is now the budget any model improvement has to close: fresher NWP inputs at the snapshot, multi-model ensembles, and earlier snapshots (where the market has had less time to sharpen) are the next pre-registered experiments.
+
+Alongside the backtest, `predictedge forecast` (run daily by CI) issues live day-ahead forecasts for open markets into `forecasts/weather.csv`, append-only — the commit timestamp before resolution is the pre-registration.
 
 ## Reproduce
 
