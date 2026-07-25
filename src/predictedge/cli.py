@@ -14,6 +14,7 @@ def main() -> None:
     sub.add_parser("significance", help="bootstrap + Diebold-Mariano on the gap")
     sub.add_parser("forecast", help="issue pre-registered forecasts for open markets")
     sub.add_parser("sweep", help="model-vs-market gap across decision-time snapshots")
+    sub.add_parser("export", help="write dashboard/public/data.json")
     args = ap.parse_args()
 
     if args.cmd == "ingest":
@@ -34,6 +35,9 @@ def main() -> None:
     elif args.cmd == "sweep":
         from . import backtest
         backtest.sweep()
+    elif args.cmd == "export":
+        from . import export
+        export.run()
 
 
 if __name__ == "__main__":

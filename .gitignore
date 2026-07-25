@@ -6,3 +6,4 @@ __pycache__/
 # retains ~2 months, so the archive is the durable record).
 data/cache/
 .DS_Store
+.claude/

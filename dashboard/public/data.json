@@ -1,0 +1,1297 @@
+{
+ "generated_at": "2026-07-25T02:59:06+00:00",
+ "cities": {
+  "KXHIGHNY": "New York (Central Park)",
+  "KXHIGHCHI": "Chicago (Midway)",
+  "KXHIGHMIA": "Miami (Intl Airport)",
+  "KXHIGHAUS": "Austin (Camp Mabry)",
+  "KXHIGHDEN": "Denver (Intl Airport)",
+  "KXHIGHLAX": "Los Angeles (LAX)"
+ },
+ "backtest": {
+  "events": 408,
+  "start": "2026-05-17",
+  "end": "2026-07-23",
+  "daily": [
+   {
+    "date": "2026-05-17",
+    "model_brier": 0.7618,
+    "market_brier": 0.564,
+    "n": 6
+   },
+   {
+    "date": "2026-05-18",
+    "model_brier": 0.4974,
+    "market_brier": 0.3376,
+    "n": 6
+   },
+   {
+    "date": "2026-05-19",
+    "model_brier": 1.0342,
+    "market_brier": 0.7387,
+    "n": 6
+   },
+   {
+    "date": "2026-05-20",
+    "model_brier": 0.7286,
+    "market_brier": 0.3826,
+    "n": 6
+   },
+   {
+    "date": "2026-05-21",
+    "model_brier": 0.5831,
+    "market_brier": 0.4391,
+    "n": 6
+   },
+   {
+    "date": "2026-05-22",
+    "model_brier": 0.828,
+    "market_brier": 0.5038,
+    "n": 6
+   },
+   {
+    "date": "2026-05-23",
+    "model_brier": 0.9806,
+    "market_brier": 0.4874,
+    "n": 6
+   },
+   {
+    "date": "2026-05-24",
+    "model_brier": 0.5579,
+    "market_brier": 0.3486,
+    "n": 6
+   },
+   {
+    "date": "2026-05-25",
+    "model_brier": 0.8847,
+    "market_brier": 0.549,
+    "n": 6
+   },
+   {
+    "date": "2026-05-26",
+    "model_brier": 0.8848,
+    "market_brier": 0.6781,
+    "n": 6
+   },
+   {
+    "date": "2026-05-27",
+    "model_brier": 0.9449,
+    "market_brier": 0.6638,
+    "n": 6
+   },
+   {
+    "date": "2026-05-28",
+    "model_brier": 0.6647,
+    "market_brier": 0.5633,
+    "n": 6
+   },
+   {
+    "date": "2026-05-29",
+    "model_brier": 0.7632,
+    "market_brier": 0.7334,
+    "n": 6
+   },
+   {
+    "date": "2026-05-30",
+    "model_brier": 0.681,
+    "market_brier": 0.4792,
+    "n": 6
+   },
+   {
+    "date": "2026-05-31",
+    "model_brier": 0.7428,
+    "market_brier": 0.5856,
+    "n": 6
+   },
+   {
+    "date": "2026-06-01",
+    "model_brier": 0.7841,
+    "market_brier": 0.5308,
+    "n": 6
+   },
+   {
+    "date": "2026-06-02",
+    "model_brier": 0.6305,
+    "market_brier": 0.4705,
+    "n": 6
+   },
+   {
+    "date": "2026-06-03",
+    "model_brier": 0.8093,
+    "market_brier": 0.5903,
+    "n": 6
+   },
+   {
+    "date": "2026-06-04",
+    "model_brier": 0.8482,
+    "market_brier": 0.5542,
+    "n": 6
+   },
+   {
+    "date": "2026-06-05",
+    "model_brier": 0.7011,
+    "market_brier": 0.7398,
+    "n": 6
+   },
+   {
+    "date": "2026-06-06",
+    "model_brier": 0.8948,
+    "market_brier": 0.9901,
+    "n": 6
+   },
+   {
+    "date": "2026-06-07",
+    "model_brier": 0.6539,
+    "market_brier": 0.4985,
+    "n": 6
+   },
+   {
+    "date": "2026-06-08",
+    "model_brier": 0.7538,
+    "market_brier": 0.4292,
+    "n": 6
+   },
+   {
+    "date": "2026-06-09",
+    "model_brier": 0.6552,
+    "market_brier": 0.5191,
+    "n": 6
+   },
+   {
+    "date": "2026-06-10",
+    "model_brier": 0.8041,
+    "market_brier": 0.5871,
+    "n": 6
+   },
+   {
+    "date": "2026-06-11",
+    "model_brier": 0.9141,
+    "market_brier": 0.5646,
+    "n": 6
+   },
+   {
+    "date": "2026-06-12",
+    "model_brier": 0.9563,
+    "market_brier": 0.5196,
+    "n": 6
+   },
+   {
+    "date": "2026-06-13",
+    "model_brier": 0.8696,
+    "market_brier": 0.622,
+    "n": 6
+   },
+   {
+    "date": "2026-06-14",
+    "model_brier": 0.6774,
+    "market_brier": 0.4228,
+    "n": 6
+   },
+   {
+    "date": "2026-06-15",
+    "model_brier": 0.5827,
+    "market_brier": 0.7238,
+    "n": 6
+   },
+   {
+    "date": "2026-06-16",
+    "model_brier": 0.8587,
+    "market_brier": 0.8403,
+    "n": 6
+   },
+   {
+    "date": "2026-06-17",
+    "model_brier": 0.7282,
+    "market_brier": 0.8822,
+    "n": 6
+   },
+   {
+    "date": "2026-06-18",
+    "model_brier": 0.8124,
+    "market_brier": 0.4109,
+    "n": 6
+   },
+   {
+    "date": "2026-06-19",
+    "model_brier": 0.5542,
+    "market_brier": 0.5784,
+    "n": 6
+   },
+   {
+    "date": "2026-06-20",
+    "model_brier": 0.5834,
+    "market_brier": 0.5406,
+    "n": 6
+   },
+   {
+    "date": "2026-06-21",
+    "model_brier": 0.7901,
+    "market_brier": 0.6451,
+    "n": 6
+   },
+   {
+    "date": "2026-06-22",
+    "model_brier": 0.8908,
+    "market_brier": 0.6516,
+    "n": 6
+   },
+   {
+    "date": "2026-06-23",
+    "model_brier": 0.5975,
+    "market_brier": 0.4761,
+    "n": 6
+   },
+   {
+    "date": "2026-06-24",
+    "model_brier": 0.5429,
+    "market_brier": 0.7393,
+    "n": 6
+   },
+   {
+    "date": "2026-06-25",
+    "model_brier": 0.9111,
+    "market_brier": 0.6534,
+    "n": 6
+   },
+   {
+    "date": "2026-06-26",
+    "model_brier": 0.7072,
+    "market_brier": 0.6929,
+    "n": 6
+   },
+   {
+    "date": "2026-06-27",
+    "model_brier": 0.6759,
+    "market_brier": 0.6535,
+    "n": 6
+   },
+   {
+    "date": "2026-06-28",
+    "model_brier": 0.8271,
+    "market_brier": 0.4977,
+    "n": 6
+   },
+   {
+    "date": "2026-06-29",
+    "model_brier": 0.6044,
+    "market_brier": 0.5206,
+    "n": 6
+   },
+   {
+    "date": "2026-06-30",
+    "model_brier": 0.7216,
+    "market_brier": 0.4547,
+    "n": 6
+   },
+   {
+    "date": "2026-07-01",
+    "model_brier": 0.7574,
+    "market_brier": 0.5496,
+    "n": 6
+   },
+   {
+    "date": "2026-07-02",
+    "model_brier": 0.7345,
+    "market_brier": 0.6252,
+    "n": 6
+   },
+   {
+    "date": "2026-07-03",
+    "model_brier": 0.806,
+    "market_brier": 0.6698,
+    "n": 6
+   },
+   {
+    "date": "2026-07-04",
+    "model_brier": 0.7568,
+    "market_brier": 0.61,
+    "n": 6
+   },
+   {
+    "date": "2026-07-05",
+    "model_brier": 0.5525,
+    "market_brier": 0.4781,
+    "n": 6
+   },
+   {
+    "date": "2026-07-06",
+    "model_brier": 0.6778,
+    "market_brier": 0.5037,
+    "n": 6
+   },
+   {
+    "date": "2026-07-07",
+    "model_brier": 0.7234,
+    "market_brier": 0.5309,
+    "n": 6
+   },
+   {
+    "date": "2026-07-08",
+    "model_brier": 0.7416,
+    "market_brier": 0.7695,
+    "n": 6
+   },
+   {
+    "date": "2026-07-09",
+    "model_brier": 0.7694,
+    "market_brier": 0.6261,
+    "n": 6
+   },
+   {
+    "date": "2026-07-10",
+    "model_brier": 0.7865,
+    "market_brier": 0.561,
+    "n": 6
+   },
+   {
+    "date": "2026-07-11",
+    "model_brier": 0.7712,
+    "market_brier": 0.827,
+    "n": 6
+   },
+   {
+    "date": "2026-07-12",
+    "model_brier": 0.766,
+    "market_brier": 0.5846,
+    "n": 6
+   },
+   {
+    "date": "2026-07-13",
+    "model_brier": 0.7439,
+    "market_brier": 0.6484,
+    "n": 6
+   },
+   {
+    "date": "2026-07-14",
+    "model_brier": 0.6445,
+    "market_brier": 0.5473,
+    "n": 6
+   },
+   {
+    "date": "2026-07-15",
+    "model_brier": 0.665,
+    "market_brier": 0.323,
+    "n": 6
+   },
+   {
+    "date": "2026-07-16",
+    "model_brier": 1.2078,
+    "market_brier": 0.6347,
+    "n": 6
+   },
+   {
+    "date": "2026-07-17",
+    "model_brier": 0.6939,
+    "market_brier": 0.5674,
+    "n": 6
+   },
+   {
+    "date": "2026-07-18",
+    "model_brier": 1.2158,
+    "market_brier": 0.6858,
+    "n": 6
+   },
+   {
+    "date": "2026-07-19",
+    "model_brier": 0.714,
+    "market_brier": 0.5782,
+    "n": 6
+   },
+   {
+    "date": "2026-07-20",
+    "model_brier": 0.8926,
+    "market_brier": 0.614,
+    "n": 6
+   },
+   {
+    "date": "2026-07-21",
+    "model_brier": 0.7914,
+    "market_brier": 0.5798,
+    "n": 6
+   },
+   {
+    "date": "2026-07-22",
+    "model_brier": 0.8227,
+    "market_brier": 0.4395,
+    "n": 6
+   },
+   {
+    "date": "2026-07-23",
+    "model_brier": 0.9089,
+    "market_brier": 0.5065,
+    "n": 6
+   }
+  ],
+  "forecast_mae": 2.31
+ },
+ "evaluation": [
+  {
+   "sample": "primary (tight quotes)",
+   "events": 407,
+   "brier_model": 0.7651,
+   "brier_market": 0.5815,
+   "logloss_model": 1.583,
+   "logloss_market": 1.0656
+  },
+  {
+   "sample": "all quoted events",
+   "events": 408,
+   "brier_model": 0.765,
+   "brier_market": 0.5811,
+   "logloss_model": 1.5825,
+   "logloss_market": 1.0649
+  }
+ ],
+ "by_city": [
+  {
+   "city": "Austin (Camp Mabry)",
+   "events": 68,
+   "brier_model": 0.7811,
+   "brier_market": 0.5901,
+   "logloss_model": 1.5423,
+   "logloss_market": 1.097
+  },
+  {
+   "city": "Chicago (Midway)",
+   "events": 68,
+   "brier_model": 0.8129,
+   "brier_market": 0.6082,
+   "logloss_model": 1.7596,
+   "logloss_market": 1.1288
+  },
+  {
+   "city": "Denver (Intl Airport)",
+   "events": 68,
+   "brier_model": 0.7613,
+   "brier_market": 0.627,
+   "logloss_model": 1.604,
+   "logloss_market": 1.1921
+  },
+  {
+   "city": "Los Angeles (LAX)",
+   "events": 68,
+   "brier_model": 0.7859,
+   "brier_market": 0.5712,
+   "logloss_model": 1.6052,
+   "logloss_market": 1.0046
+  },
+  {
+   "city": "Miami (Intl Airport)",
+   "events": 68,
+   "brier_model": 0.7211,
+   "brier_market": 0.5314,
+   "logloss_model": 1.416,
+   "logloss_market": 0.9266
+  },
+  {
+   "city": "New York (Central Park)",
+   "events": 68,
+   "brier_model": 0.7277,
+   "brier_market": 0.5587,
+   "logloss_model": 1.5682,
+   "logloss_market": 1.0403
+  }
+ ],
+ "significance": [
+  {
+   "comparison": "baseline model vs market (de-vigged mid)",
+   "sample": "primary",
+   "metric": "brier",
+   "events": 407,
+   "dates": 68,
+   "mean_diff": 0.18359,
+   "ci_low": 0.14754,
+   "ci_high": 0.22146,
+   "p_bootstrap": 0.0,
+   "dm_stat": 7.942,
+   "p_dm": 0.0
+  },
+  {
+   "comparison": "baseline model vs market (de-vigged mid)",
+   "sample": "all quoted",
+   "metric": "brier",
+   "events": 408,
+   "dates": 68,
+   "mean_diff": 0.18394,
+   "ci_low": 0.14656,
+   "ci_high": 0.22058,
+   "p_bootstrap": 0.0,
+   "dm_stat": 7.954,
+   "p_dm": 0.0
+  },
+  {
+   "comparison": "baseline model vs market (de-vigged mid)",
+   "sample": "primary",
+   "metric": "logloss",
+   "events": 407,
+   "dates": 68,
+   "mean_diff": 0.51745,
+   "ci_low": 0.41749,
+   "ci_high": 0.62079,
+   "p_bootstrap": 0.0,
+   "dm_stat": 8.897,
+   "p_dm": 0.0
+  },
+  {
+   "comparison": "baseline model vs market (de-vigged mid)",
+   "sample": "all quoted",
+   "metric": "logloss",
+   "events": 408,
+   "dates": 68,
+   "mean_diff": 0.51764,
+   "ci_low": 0.41866,
+   "ci_high": 0.62025,
+   "p_bootstrap": 0.0,
+   "dm_stat": 8.94,
+   "p_dm": 0.0
+  }
+ ],
+ "sweep": [
+  {
+   "snapshot": "D-1 16:00Z (open+2h)",
+   "lead_days": 2,
+   "events": 404,
+   "brier_model": 0.7653,
+   "brier_market": 0.6472,
+   "d_brier": 0.118,
+   "ci_low": 0.0886,
+   "ci_high": 0.148,
+   "p_bootstrap": 0.0,
+   "dm_stat": 8.46,
+   "p_dm": 0.0,
+   "logloss_model": 1.6102,
+   "logloss_market": 1.2424
+  },
+  {
+   "snapshot": "D-1 21:00Z",
+   "lead_days": 2,
+   "events": 408,
+   "brier_model": 0.7646,
+   "brier_market": 0.6362,
+   "d_brier": 0.1284,
+   "ci_low": 0.0965,
+   "ci_high": 0.1597,
+   "p_bootstrap": 0.0,
+   "dm_stat": 8.86,
+   "p_dm": 0.0,
+   "logloss_model": 1.6109,
+   "logloss_market": 1.1937
+  },
+  {
+   "snapshot": "D 01:00Z",
+   "lead_days": 1,
+   "events": 408,
+   "brier_model": 0.768,
+   "brier_market": 0.6259,
+   "d_brier": 0.1421,
+   "ci_low": 0.1086,
+   "ci_high": 0.1755,
+   "p_bootstrap": 0.0,
+   "dm_stat": 7.53,
+   "p_dm": 0.0,
+   "logloss_model": 1.5922,
+   "logloss_market": 1.1604
+  },
+  {
+   "snapshot": "D 05:00Z",
+   "lead_days": 1,
+   "events": 408,
+   "brier_model": 0.768,
+   "brier_market": 0.6019,
+   "d_brier": 0.1661,
+   "ci_low": 0.1297,
+   "ci_high": 0.2028,
+   "p_bootstrap": 0.0,
+   "dm_stat": 7.95,
+   "p_dm": 0.0,
+   "logloss_model": 1.5922,
+   "logloss_market": 1.1206
+  },
+  {
+   "snapshot": "D 09:00Z",
+   "lead_days": 1,
+   "events": 407,
+   "brier_model": 0.7651,
+   "brier_market": 0.5815,
+   "d_brier": 0.1836,
+   "ci_low": 0.1469,
+   "ci_high": 0.2199,
+   "p_bootstrap": 0.0,
+   "dm_stat": 7.94,
+   "p_dm": 0.0,
+   "logloss_model": 1.583,
+   "logloss_market": 1.0656
+  }
+ ],
+ "reliability": [
+  {
+   "series": "model",
+   "bin_mid": 0.05,
+   "predicted": 0.0338,
+   "observed": 0.0482,
+   "n": 976
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.15,
+   "predicted": 0.1493,
+   "observed": 0.14,
+   "n": 507
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.25,
+   "predicted": 0.2502,
+   "observed": 0.2756,
+   "n": 675
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.35,
+   "predicted": 0.34,
+   "observed": 0.3631,
+   "n": 179
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.45,
+   "predicted": 0.445,
+   "observed": 0.1765,
+   "n": 34
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.55,
+   "predicted": 0.5555,
+   "observed": 0.2727,
+   "n": 22
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.65,
+   "predicted": 0.6403,
+   "observed": 0.35,
+   "n": 20
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.75,
+   "predicted": 0.7552,
+   "observed": 0.4667,
+   "n": 15
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.85,
+   "predicted": 0.8507,
+   "observed": 0.5,
+   "n": 10
+  },
+  {
+   "series": "model",
+   "bin_mid": 0.95,
+   "predicted": 0.9509,
+   "observed": 0.8,
+   "n": 10
+  },
+  {
+   "series": "market",
+   "bin_mid": 0.05,
+   "predicted": 0.0263,
+   "observed": 0.0198,
+   "n": 1366
+  },
+  {
+   "series": "market",
+   "bin_mid": 0.15,
+   "predicted": 0.1478,
+   "observed": 0.122,
+   "n": 246
+  },
+  {
+   "series": "market",
+   "bin_mid": 0.25,
+   "predicted": 0.2517,
+   "observed": 0.279,
+   "n": 233
+  },
+  {
+   "series": "market",
+   "bin_mid": 0.35,
+   "predicted": 0.3487,
+   "observed": 0.3426,
+   "n": 216
+  },
+  {
+   "series": "market",
+   "bin_mid": 0.45,
+   "predicted": 0.4467,
+   "observed": 0.45,
+   "n": 200
+  },
+  {
+   "series": "market",
+   "bin_mid": 0.55,
+   "predicted": 0.5426,
+   "observed": 0.5926,
+   "n": 108
+  },
+  {
+   "series": "market",
+   "bin_mid": 0.65,
+   "predicted": 0.6306,
+   "observed": 0.678,
+   "n": 59
+  }
+ ],
+ "modal_hit": {
+  "model": 0.3652,
+  "market": 0.5172
+ },
+ "live": {
+  "open": [
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Denver (Intl Airport)",
+    "event_ticker": "KXHIGHDEN-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHDEN-26JUL25-T94",
+    "strike_type": "less",
+    "floor": null,
+    "cap": 94.0,
+    "p_model": 0.0144,
+    "mu": 99.68,
+    "sigma": 2.83,
+    "yes_bid": 0.01,
+    "yes_ask": 0.02
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Austin (Camp Mabry)",
+    "event_ticker": "KXHIGHAUS-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHAUS-26JUL25-B95.5",
+    "strike_type": "between",
+    "floor": 95.0,
+    "cap": 96.0,
+    "p_model": 0.2859,
+    "mu": 96.58,
+    "sigma": 2.48,
+    "yes_bid": 0.49,
+    "yes_ask": 0.5
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Austin (Camp Mabry)",
+    "event_ticker": "KXHIGHAUS-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHAUS-26JUL25-B97.5",
+    "strike_type": "between",
+    "floor": 97.0,
+    "cap": 98.0,
+    "p_model": 0.293,
+    "mu": 96.58,
+    "sigma": 2.48,
+    "yes_bid": 0.37,
+    "yes_ask": 0.38
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Austin (Camp Mabry)",
+    "event_ticker": "KXHIGHAUS-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHAUS-26JUL25-B99.5",
+    "strike_type": "between",
+    "floor": 99.0,
+    "cap": 100.0,
+    "p_model": 0.1626,
+    "mu": 96.58,
+    "sigma": 2.48,
+    "yes_bid": 0.11,
+    "yes_ask": 0.12
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Austin (Camp Mabry)",
+    "event_ticker": "KXHIGHAUS-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHAUS-26JUL25-B101.5",
+    "strike_type": "between",
+    "floor": 101.0,
+    "cap": 102.0,
+    "p_model": 0.0488,
+    "mu": 96.58,
+    "sigma": 2.48,
+    "yes_bid": 0.01,
+    "yes_ask": 0.03
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Austin (Camp Mabry)",
+    "event_ticker": "KXHIGHAUS-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHAUS-26JUL25-T102",
+    "strike_type": "greater",
+    "floor": 102.0,
+    "cap": null,
+    "p_model": 0.0086,
+    "mu": 96.58,
+    "sigma": 2.48,
+    "yes_bid": 0.01,
+    "yes_ask": 0.03
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Denver (Intl Airport)",
+    "event_ticker": "KXHIGHDEN-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHDEN-26JUL25-B94.5",
+    "strike_type": "between",
+    "floor": 94.0,
+    "cap": 95.0,
+    "p_model": 0.0552,
+    "mu": 99.68,
+    "sigma": 2.83,
+    "yes_bid": 0.01,
+    "yes_ask": 0.05
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Los Angeles (LAX)",
+    "event_ticker": "KXHIGHLAX-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHLAX-26JUL25-B83.5",
+    "strike_type": "between",
+    "floor": 83.0,
+    "cap": 84.0,
+    "p_model": 0.1803,
+    "mu": 80.82,
+    "sigma": 2.51,
+    "yes_bid": 0.05,
+    "yes_ask": 0.06
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Denver (Intl Airport)",
+    "event_ticker": "KXHIGHDEN-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHDEN-26JUL25-B98.5",
+    "strike_type": "between",
+    "floor": 98.0,
+    "cap": 99.0,
+    "p_model": 0.2541,
+    "mu": 99.68,
+    "sigma": 2.83,
+    "yes_bid": 0.47,
+    "yes_ask": 0.49
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Denver (Intl Airport)",
+    "event_ticker": "KXHIGHDEN-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHDEN-26JUL25-B100.5",
+    "strike_type": "between",
+    "floor": 100.0,
+    "cap": 101.0,
+    "p_model": 0.2655,
+    "mu": 99.68,
+    "sigma": 2.83,
+    "yes_bid": 0.38,
+    "yes_ask": 0.39
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Denver (Intl Airport)",
+    "event_ticker": "KXHIGHDEN-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHDEN-26JUL25-T101",
+    "strike_type": "greater",
+    "floor": 101.0,
+    "cap": null,
+    "p_model": 0.2602,
+    "mu": 99.68,
+    "sigma": 2.83,
+    "yes_bid": 0.08,
+    "yes_ask": 0.09
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Los Angeles (LAX)",
+    "event_ticker": "KXHIGHLAX-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHLAX-26JUL25-T79",
+    "strike_type": "less",
+    "floor": null,
+    "cap": 79.0,
+    "p_model": 0.1782,
+    "mu": 80.82,
+    "sigma": 2.51,
+    "yes_bid": 0.26,
+    "yes_ask": 0.29
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Los Angeles (LAX)",
+    "event_ticker": "KXHIGHLAX-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHLAX-26JUL25-B79.5",
+    "strike_type": "between",
+    "floor": 79.0,
+    "cap": 80.0,
+    "p_model": 0.2713,
+    "mu": 80.82,
+    "sigma": 2.51,
+    "yes_bid": 0.44,
+    "yes_ask": 0.45
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Los Angeles (LAX)",
+    "event_ticker": "KXHIGHLAX-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHLAX-26JUL25-B81.5",
+    "strike_type": "between",
+    "floor": 81.0,
+    "cap": 82.0,
+    "p_model": 0.2986,
+    "mu": 80.82,
+    "sigma": 2.51,
+    "yes_bid": 0.21,
+    "yes_ask": 0.22
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Austin (Camp Mabry)",
+    "event_ticker": "KXHIGHAUS-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHAUS-26JUL25-T95",
+    "strike_type": "less",
+    "floor": null,
+    "cap": 95.0,
+    "p_model": 0.2012,
+    "mu": 96.58,
+    "sigma": 2.48,
+    "yes_bid": 0.04,
+    "yes_ask": 0.05
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Denver (Intl Airport)",
+    "event_ticker": "KXHIGHDEN-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHDEN-26JUL25-B96.5",
+    "strike_type": "between",
+    "floor": 96.0,
+    "cap": 97.0,
+    "p_model": 0.1506,
+    "mu": 99.68,
+    "sigma": 2.83,
+    "yes_bid": 0.06,
+    "yes_ask": 0.1
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Miami (Intl Airport)",
+    "event_ticker": "KXHIGHMIA-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHMIA-26JUL25-T95",
+    "strike_type": "greater",
+    "floor": 95.0,
+    "cap": null,
+    "p_model": 0.0106,
+    "mu": 90.88,
+    "sigma": 2.01,
+    "yes_bid": 0.01,
+    "yes_ask": 0.02
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Chicago (Midway)",
+    "event_ticker": "KXHIGHCHI-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHCHI-26JUL25-B84.5",
+    "strike_type": "between",
+    "floor": 84.0,
+    "cap": 85.0,
+    "p_model": 0.2476,
+    "mu": 83.54,
+    "sigma": 3.02,
+    "yes_bid": 0.25,
+    "yes_ask": 0.29
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Miami (Intl Airport)",
+    "event_ticker": "KXHIGHMIA-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHMIA-26JUL25-B92.5",
+    "strike_type": "between",
+    "floor": 92.0,
+    "cap": 93.0,
+    "p_model": 0.2831,
+    "mu": 90.88,
+    "sigma": 2.01,
+    "yes_bid": 0.6,
+    "yes_ask": 0.61
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Los Angeles (LAX)",
+    "event_ticker": "KXHIGHLAX-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHLAX-26JUL25-B85.5",
+    "strike_type": "between",
+    "floor": 85.0,
+    "cap": 86.0,
+    "p_model": 0.0597,
+    "mu": 80.82,
+    "sigma": 2.51,
+    "yes_bid": 0.02,
+    "yes_ask": 0.03
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "New York (Central Park)",
+    "event_ticker": "KXHIGHNY-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHNY-26JUL25-T80",
+    "strike_type": "less",
+    "floor": null,
+    "cap": 80.0,
+    "p_model": 0.4501,
+    "mu": 79.89,
+    "sigma": 3.12,
+    "yes_bid": 0.09,
+    "yes_ask": 0.11
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "New York (Central Park)",
+    "event_ticker": "KXHIGHNY-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHNY-26JUL25-B80.5",
+    "strike_type": "between",
+    "floor": 80.0,
+    "cap": 81.0,
+    "p_model": 0.247,
+    "mu": 79.89,
+    "sigma": 3.12,
+    "yes_bid": 0.51,
+    "yes_ask": 0.52
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "New York (Central Park)",
+    "event_ticker": "KXHIGHNY-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHNY-26JUL25-B82.5",
+    "strike_type": "between",
+    "floor": 82.0,
+    "cap": 83.0,
+    "p_model": 0.1794,
+    "mu": 79.89,
+    "sigma": 3.12,
+    "yes_bid": 0.36,
+    "yes_ask": 0.38
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "New York (Central Park)",
+    "event_ticker": "KXHIGHNY-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHNY-26JUL25-B84.5",
+    "strike_type": "between",
+    "floor": 84.0,
+    "cap": 85.0,
+    "p_model": 0.0875,
+    "mu": 79.89,
+    "sigma": 3.12,
+    "yes_bid": 0.02,
+    "yes_ask": 0.03
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "New York (Central Park)",
+    "event_ticker": "KXHIGHNY-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHNY-26JUL25-B86.5",
+    "strike_type": "between",
+    "floor": 86.0,
+    "cap": 87.0,
+    "p_model": 0.0287,
+    "mu": 79.89,
+    "sigma": 3.12,
+    "yes_bid": 0.01,
+    "yes_ask": 0.02
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "New York (Central Park)",
+    "event_ticker": "KXHIGHNY-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHNY-26JUL25-T87",
+    "strike_type": "greater",
+    "floor": 87.0,
+    "cap": null,
+    "p_model": 0.0073,
+    "mu": 79.89,
+    "sigma": 3.12,
+    "yes_bid": 0.0,
+    "yes_ask": 0.01
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Chicago (Midway)",
+    "event_ticker": "KXHIGHCHI-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHCHI-26JUL25-T80",
+    "strike_type": "less",
+    "floor": null,
+    "cap": 80.0,
+    "p_model": 0.0899,
+    "mu": 83.54,
+    "sigma": 3.02,
+    "yes_bid": 0.07,
+    "yes_ask": 0.08
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Chicago (Midway)",
+    "event_ticker": "KXHIGHCHI-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHCHI-26JUL25-B80.5",
+    "strike_type": "between",
+    "floor": 80.0,
+    "cap": 81.0,
+    "p_model": 0.1589,
+    "mu": 83.54,
+    "sigma": 3.02,
+    "yes_bid": 0.15,
+    "yes_ask": 0.19
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Chicago (Midway)",
+    "event_ticker": "KXHIGHCHI-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHCHI-26JUL25-B82.5",
+    "strike_type": "between",
+    "floor": 82.0,
+    "cap": 83.0,
+    "p_model": 0.2452,
+    "mu": 83.54,
+    "sigma": 3.02,
+    "yes_bid": 0.42,
+    "yes_ask": 0.43
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Chicago (Midway)",
+    "event_ticker": "KXHIGHCHI-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHCHI-26JUL25-B86.5",
+    "strike_type": "between",
+    "floor": 86.0,
+    "cap": 87.0,
+    "p_model": 0.1636,
+    "mu": 83.54,
+    "sigma": 3.02,
+    "yes_bid": 0.05,
+    "yes_ask": 0.07
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Chicago (Midway)",
+    "event_ticker": "KXHIGHCHI-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHCHI-26JUL25-T87",
+    "strike_type": "greater",
+    "floor": 87.0,
+    "cap": null,
+    "p_model": 0.0948,
+    "mu": 83.54,
+    "sigma": 3.02,
+    "yes_bid": 0.02,
+    "yes_ask": 0.03
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Miami (Intl Airport)",
+    "event_ticker": "KXHIGHMIA-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHMIA-26JUL25-T88",
+    "strike_type": "less",
+    "floor": null,
+    "cap": 88.0,
+    "p_model": 0.0459,
+    "mu": 90.88,
+    "sigma": 2.01,
+    "yes_bid": 0.0,
+    "yes_ask": 0.01
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Miami (Intl Airport)",
+    "event_ticker": "KXHIGHMIA-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHMIA-26JUL25-B88.5",
+    "strike_type": "between",
+    "floor": 88.0,
+    "cap": 89.0,
+    "p_model": 0.1995,
+    "mu": 90.88,
+    "sigma": 2.01,
+    "yes_bid": 0.04,
+    "yes_ask": 0.06
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Miami (Intl Airport)",
+    "event_ticker": "KXHIGHMIA-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHMIA-26JUL25-B90.5",
+    "strike_type": "between",
+    "floor": 90.0,
+    "cap": 91.0,
+    "p_model": 0.3757,
+    "mu": 90.88,
+    "sigma": 2.01,
+    "yes_bid": 0.15,
+    "yes_ask": 0.18
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Miami (Intl Airport)",
+    "event_ticker": "KXHIGHMIA-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHMIA-26JUL25-B94.5",
+    "strike_type": "between",
+    "floor": 94.0,
+    "cap": 95.0,
+    "p_model": 0.0852,
+    "mu": 90.88,
+    "sigma": 2.01,
+    "yes_bid": 0.22,
+    "yes_ask": 0.23
+   },
+   {
+    "issue_ts": "2026-07-24T23:44:27+00:00",
+    "city": "Los Angeles (LAX)",
+    "event_ticker": "KXHIGHLAX-26JUL25",
+    "event_date": "2026-07-25",
+    "ticker": "KXHIGHLAX-26JUL25-T86",
+    "strike_type": "greater",
+    "floor": 86.0,
+    "cap": null,
+    "p_model": 0.0119,
+    "mu": 80.82,
+    "sigma": 2.51,
+    "yes_bid": 0.01,
+    "yes_ask": 0.02
+   }
+  ],
+  "resolved": [],
+  "summary": null
+ }
+}
