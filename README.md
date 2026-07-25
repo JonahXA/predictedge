@@ -75,6 +75,10 @@ Same design swept across earlier decision times (`predictedge sweep`). Day-befor
 
 Two findings. First, there is **no soft window**: two hours after these markets open, with thin books, they already beat the public-NWP baseline decisively. Second, the market's Brier improves monotonically as the event approaches (0.647 → 0.581) while the baseline's stays flat — the widening gap is a direct measurement of information flowing into the price over the ~17 hours before the event day starts. Whatever traders are using (fresher model runs, human synthesis), they price it in early and keep accruing it.
 
+## Dashboard
+
+The public site renders the committed research record — reports and pre-registered forecasts already in git. It never recomputes anything at build time, so what's published is exactly what's in the repo. `predictedge export` writes `dashboard/public/data.json`; `.github/workflows/pages.yml` builds the Next.js static export and deploys it on every push.
+
 ## Reproduce
 
 ```
@@ -83,6 +87,9 @@ predictedge ingest         # archive settled markets + candlesticks (cached, thr
 predictedge backtest       # walk-forward model vs market
 predictedge evaluate       # aggregate Brier / log loss table
 predictedge significance   # clustered bootstrap + Diebold-Mariano
+predictedge sweep          # gap across decision-time snapshots
+predictedge forecast       # issue pre-registered forecasts for open markets
+predictedge export         # write dashboard data.json
 ```
 
 ## Guardrails
