@@ -22,22 +22,45 @@ from . import ingest, market, weather
 from .cache import get_json
 from .config import FORECASTS_DIR, KALSHI_BASE, WEATHER_SERIES
 from .models.baseline import ErrorState, bin_probs
+from .weather import ENSEMBLE_MODELS, drop_duplicate_members
+
+# The live model mirrors the best backtested variant: multi-model mean
+# with spread-conditional sigma. Recorded in every issued row so the
+# pre-registered record stays interpretable across model changes.
+MODEL_TAG = "ensemble-spread-v2"
 
 LIVE_FORECAST = "https://api.open-meteo.com/v1/forecast"
 
 
-def _live_highs(lat: float, lon: float, tz: str) -> dict[date, float]:
+def _live_members(lat: float, lon: float, tz: str) -> pd.DataFrame:
+    """Live multi-model forecasts of the daily high, one column per NWP
+    member, indexed by date.
+
+    Unlike the backtest — which is capped at `previous_day1` because that
+    is the shortest lead the archive exposes — the live path may use each
+    model's *current* run. Nothing has resolved yet, so there is no leak,
+    and issued forecasts are therefore built on fresher data than the
+    backtest could measure."""
     d = get_json(LIVE_FORECAST, {
         "latitude": lat, "longitude": lon, "daily": "temperature_2m_max",
         "temperature_unit": "fahrenheit", "timezone": tz, "forecast_days": 3,
+        "models": ",".join(ENSEMBLE_MODELS),
     }, refresh=True)
     daily = d["daily"]
-    return {date.fromisoformat(t): v for t, v in zip(daily["time"], daily["temperature_2m_max"])
-            if v is not None}
+    idx = [date.fromisoformat(t) for t in daily["time"]]
+    cols = {
+        k.replace("temperature_2m_max_", ""): v
+        for k, v in daily.items()
+        if k.startswith("temperature_2m_max")
+    }
+    if not cols:  # single-model response shape
+        cols = {"default": daily["temperature_2m_max"]}
+    return drop_duplicate_members(pd.DataFrame(cols, index=idx).dropna(how="all"))
 
 
 def _error_state(series_ticker: str, today: date) -> ErrorState:
-    """Walk-forward bias/sigma from archived settled events before today."""
+    """Walk-forward bias/sigma from archived settled events before today,
+    measured against the same multi-model mean the live path issues."""
     m = ingest.load_markets()
     m = m[(m["series_ticker"] == series_ticker) & m["expiration_value"].notna()]
     officials = (
@@ -49,12 +72,33 @@ def _error_state(series_ticker: str, today: date) -> ErrorState:
     if len(officials) == 0:
         return state
     cfg = WEATHER_SERIES[series_ticker]
-    fc = weather.day_ahead_highs(cfg["lat"], cfg["lon"], cfg["tz"],
-                                 officials.index.min(), officials.index.max())
+    members = weather.ensemble_highs(cfg["lat"], cfg["lon"], cfg["tz"],
+                                     officials.index.min(), officials.index.max())
+    mean, spread = members.mean(axis=1), members.std(axis=1, ddof=0)
     for d, official in officials.items():
-        if d in fc.index:
-            state.add(float(official) - float(fc[d]))
+        if d in mean.index and pd.notna(mean[d]):
+            state.add(float(official) - float(mean[d]),
+                      float(spread[d]) if pd.notna(spread[d]) else None)
     return state
+
+
+def _append(path, new: pd.DataFrame) -> None:
+    """Append issued forecasts, tolerating schema growth.
+
+    Naive CSV append breaks the moment the model gains a column, so when
+    the schema changes the file is rewritten over the union of columns —
+    older rows keep every value they were issued with and simply carry
+    blanks for fields that did not exist yet. No issued value is ever
+    modified, and git preserves the original bytes either way."""
+    if not path.exists():
+        new.to_csv(path, index=False)
+        return
+    old = pd.read_csv(path)
+    if list(old.columns) == list(new.columns):
+        new.to_csv(path, mode="a", header=False, index=False)
+        return
+    cols = list(old.columns) + [c for c in new.columns if c not in old.columns]
+    pd.concat([old, new], ignore_index=True).reindex(columns=cols).to_csv(path, index=False)
 
 
 def run() -> pd.DataFrame:
@@ -71,7 +115,9 @@ def run() -> pd.DataFrame:
             if col not in ms:
                 ms[col] = float("nan")
             ms[col] = pd.to_numeric(ms[col], errors="coerce")
-        highs = _live_highs(cfg["lat"], cfg["lon"], cfg["tz"])
+        members = _live_members(cfg["lat"], cfg["lon"], cfg["tz"])
+        highs = members.mean(axis=1)
+        spreads = members.std(axis=1, ddof=0)
         state = _error_state(st, today)
         # Pure day-ahead issuance, matching the backtest design: only
         # events whose local calendar day hasn't started yet. Issuing on
@@ -80,12 +126,14 @@ def run() -> pd.DataFrame:
         local_today = datetime.now(ZoneInfo(cfg["tz"])).date()
         for ev, g in ms.groupby("event_ticker"):
             ev_date = market.event_date(ev)
-            if ev_date <= local_today or ev_date not in highs:
+            if ev_date <= local_today or ev_date not in highs.index or pd.isna(highs[ev_date]):
                 continue
             g = g.sort_values(["floor_strike", "cap_strike"], na_position="first")
-            mu = highs[ev_date] + state.bias
+            mu = float(highs[ev_date]) + state.bias
+            spread = float(spreads[ev_date]) if pd.notna(spreads[ev_date]) else None
+            sigma = state.sigma_for(spread)
             bins = list(zip(g["strike_type"], g["floor_strike"], g["cap_strike"]))
-            p = bin_probs(mu, state.sigma, bins)
+            p = bin_probs(mu, sigma, bins)
             for i, t in enumerate(g.itertuples()):
                 bid = float(t.yes_bid_dollars) if pd.notna(t.yes_bid_dollars) else None
                 ask = float(t.yes_ask_dollars) if pd.notna(t.yes_ask_dollars) else None
@@ -94,8 +142,11 @@ def run() -> pd.DataFrame:
                     "event_date": ev_date, "ticker": t.ticker,
                     "strike_type": t.strike_type, "floor": t.floor_strike, "cap": t.cap_strike,
                     "p_model": round(float(p[i]), 4), "mu": round(mu, 2),
-                    "sigma": round(state.sigma, 2), "n_errors": len(state.errors),
+                    "sigma": round(sigma, 2), "n_errors": len(state.errors),
                     "yes_bid": bid, "yes_ask": ask,
+                    "model": MODEL_TAG,
+                    "n_members": int(members.shape[1]),
+                    "spread": round(spread, 2) if spread is not None else None,
                 })
     out = pd.DataFrame(rows)
     if out.empty:
@@ -103,8 +154,7 @@ def run() -> pd.DataFrame:
         return out
     FORECASTS_DIR.mkdir(exist_ok=True)
     path = FORECASTS_DIR / "weather.csv"
-    # Append-only: issued forecasts are never overwritten.
-    out.to_csv(path, mode="a", header=not path.exists(), index=False)
+    _append(path, out)
     print(f"issued {len(out)} bin forecasts across "
           f"{out['event_ticker'].nunique()} events at {issue_ts} -> {path}")
     return out
