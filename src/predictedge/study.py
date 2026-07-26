@@ -90,11 +90,23 @@ def per_series(variant: backtest.Variant | None = None,
 
 
 def _regression(x: np.ndarray, y: np.ndarray) -> dict:
+    """Slope with a 95% CI. The CI matters more than the p-value here:
+    a null result on 40 noisy series is only meaningful if it also rules
+    out an effect large enough to care about."""
     r = stats.linregress(x, y)
+    n = len(x)
+    tcrit = stats.t.ppf(0.975, df=n - 2)
+    half = tcrit * float(r.stderr)
+    # Effect implied across the observed volume range, in Brier points.
+    span = float(x.max() - x.min())
     return {
         "slope": float(r.slope), "intercept": float(r.intercept),
+        "slope_ci_low": float(r.slope) - half, "slope_ci_high": float(r.slope) + half,
+        "effect_over_range": float(r.slope) * span,
+        "effect_ci_low": (float(r.slope) - half) * span,
+        "effect_ci_high": (float(r.slope) + half) * span,
         "r": float(r.rvalue), "p": float(r.pvalue), "stderr": float(r.stderr),
-        "n": int(len(x)),
+        "n": int(n),
     }
 
 
@@ -135,11 +147,15 @@ def run() -> pd.DataFrame:
     if len(piv) >= 5:
         diff = (piv["high"] - piv["low"]).to_numpy(float)
         t = stats.ttest_rel(piv["high"], piv["low"])
+        se = float(diff.std(ddof=1) / np.sqrt(len(diff)))
+        half = stats.t.ppf(0.975, df=len(diff) - 1) * se
         findings.append({
             "test": "paired within-city: d_brier(high) - d_brier(low)",
             "n": int(len(diff)), "mean_diff": float(diff.mean()),
+            "effect_ci_low": float(diff.mean()) - half,
+            "effect_ci_high": float(diff.mean()) + half,
             "p": float(t.pvalue), "slope": np.nan, "intercept": np.nan,
-            "r": np.nan, "stderr": float(diff.std(ddof=1) / np.sqrt(len(diff))),
+            "r": np.nan, "stderr": se,
         })
 
     # 3. Sensitivity: the tight-spread sample the headline backtest uses.

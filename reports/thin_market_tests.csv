@@ -1,0 +1,7 @@
+test,slope,intercept,slope_ci_low,slope_ci_high,effect_over_range,effect_ci_low,effect_ci_high,r,p,stderr,n,mean_diff
+mean_spread ~ log10(volume per market),-0.08417,0.39138,-0.10406,-0.06428,-0.15188,-0.18777,-0.116,-0.81175,0.0,0.00982,40,
+"d_brier ~ log10(volume per market), all series",0.01409,0.00689,-0.01149,0.03968,0.02543,-0.02073,0.07159,0.17806,0.27167,0.01264,40,
+"d_brier ~ log10(volume), high only",-0.0021,0.07371,-0.05001,0.0458,-0.00284,-0.06758,0.06189,-0.02174,0.9275,0.0228,20,
+"d_brier ~ log10(volume), low only",0.04053,-0.08366,-0.05168,0.13274,0.02848,-0.03632,0.09327,0.21267,0.368,0.04389,20,
+paired within-city: d_brier(high) - d_brier(low),,,,,,-0.00911,0.03286,,0.2508,0.01002,20,0.01187
+"SENSITIVITY d_brier ~ log10(volume), tight-spread events only",0.00992,0.02679,-0.01782,0.03767,0.01791,-0.03216,0.06797,0.11667,0.47343,0.01371,40,
