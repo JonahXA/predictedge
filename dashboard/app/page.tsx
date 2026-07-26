@@ -2,6 +2,7 @@ import raw from "../public/data.json";
 import DailyBrier from "../components/DailyBrier";
 import Reliability from "../components/Reliability";
 import SnapshotSweep from "../components/SnapshotSweep";
+import ThinMarket from "../components/ThinMarket";
 
 type Eval = {
   sample: string;
@@ -93,6 +94,14 @@ const data = raw as unknown as {
     dm_stat: number;
     p_dm: number;
   }[];
+  thin_market?: {
+    series: string; city: string; kind: string; events: number;
+    vol_per_market: number; tight_rate: number; mean_spread: number;
+    brier_model: number; brier_market: number; d_brier: number; forecast_mae: number;
+  }[];
+  thin_tests?: { test: string; slope: number; r: number; p: number; n: number; mean_diff?: number }[];
+  thin_by_kind?: { kind: string; series: number; events: number; vol_per_market: number;
+                   brier_model: number; brier_market: number; d_brier: number; forecast_mae: number }[];
   reliability?: { series: string; bin_mid: number; predicted: number; observed: number; n: number }[];
   modal_hit?: { model: number; market: number };
   live: { open: Forecast[]; resolved: Forecast[]; summary: { events: number; brier_model: number; brier_market: number } | null };
@@ -307,6 +316,79 @@ export default function Home() {
                 The remainder — still significant at p &lt; 0.0001 — is not.
               </li>
             </ul>
+          )}
+        </section>
+      )}
+
+      {data.thin_market && data.thin_market.length >= 8 && (
+        <section className="card">
+          <h2>Is market sharpness bought with attention?</h2>
+          <p className="sub">
+            The same model against {data.thin_market.length} temperature series spanning a wide range
+            of traded volume. Each city&rsquo;s daily <em>low</em> market shares a station, a day and a
+            resolution source with its <em>high</em> market but trades far thinner — so differencing
+            within a city isolates attention from geography.
+          </p>
+          <ThinMarket rows={data.thin_market} />
+          {data.thin_tests && (
+            <div className="table-scroll" style={{ marginTop: 18 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th>n</th>
+                    <th>slope / diff</th>
+                    <th>r</th>
+                    <th>p</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.thin_tests.map((t) => (
+                    <tr key={t.test}>
+                      <td style={{ whiteSpace: "normal" }}>{t.test}</td>
+                      <td>{t.n}</td>
+                      <td>
+                        {t.mean_diff !== undefined && t.mean_diff !== null && !Number.isNaN(t.mean_diff)
+                          ? t.mean_diff.toFixed(4)
+                          : Number.isNaN(t.slope) ? "—" : t.slope.toFixed(4)}
+                      </td>
+                      <td>{Number.isNaN(t.r) ? "—" : t.r?.toFixed(3)}</td>
+                      <td>{pval(t.p)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {data.thin_by_kind && (
+            <div className="table-scroll" style={{ marginTop: 18 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Market type</th>
+                    <th>Series</th>
+                    <th>Events</th>
+                    <th>Avg volume/market</th>
+                    <th>Model Brier</th>
+                    <th>Market Brier</th>
+                    <th>ΔBrier</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.thin_by_kind.map((k) => (
+                    <tr key={k.kind}>
+                      <td>daily {k.kind}</td>
+                      <td>{k.series}</td>
+                      <td>{k.events}</td>
+                      <td>{Math.round(k.vol_per_market).toLocaleString()}</td>
+                      <td>{p4(k.brier_model)}</td>
+                      <td className="win">{p4(k.brier_market)}</td>
+                      <td>+{k.d_brier.toFixed(3)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
       )}

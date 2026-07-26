@@ -129,7 +129,9 @@ def run() -> None:
 
     for key, name in [("evaluation", "evaluation.csv"), ("by_city", "evaluation_by_city.csv"),
                       ("significance", "significance.csv"), ("sweep", "snapshot_sweep.csv"),
-                      ("variants", "variants.csv"), ("variant_significance", "variant_significance.csv")]:
+                      ("variants", "variants.csv"), ("variant_significance", "variant_significance.csv"),
+                      ("thin_market", "thin_market.csv"), ("thin_tests", "thin_market_tests.csv"),
+                      ("thin_by_kind", "thin_market_by_kind.csv")]:
         df = _read(name)
         if df is not None:
             payload[key] = json.loads(df.to_json(orient="records"))
