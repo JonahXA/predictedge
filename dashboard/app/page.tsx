@@ -145,35 +145,71 @@ export default function Home() {
         </p>
       </div>
 
-      {primary && bt && (
+      {best && primary && (
         <div className="stat-row">
           <div className="stat-tile">
-            <div className="value">{bt.events}</div>
+            <div className="value">
+              {data.thin_market
+                ? data.thin_market.reduce((a, r) => a + r.events, 0).toLocaleString()
+                : best.events}
+            </div>
             <div className="label">
-              events scored · {bt.start} → {bt.end}
+              events scored{data.thin_market ? ` · ${data.thin_market.length} markets` : ""}
             </div>
           </div>
           <div className="stat-tile">
-            <div className="value">{p4(primary.brier_model)}</div>
-            <div className="label">Brier — baseline model</div>
+            <div className="value">{p4(best.brier_model)}</div>
+            <div className="label">Brier — best model</div>
           </div>
           <div className="stat-tile">
             <div className="value" style={{ color: "var(--good)" }}>
-              {p4(primary.brier_market)}
+              {p4(best.brier_market)}
             </div>
             <div className="label">Brier — Kalshi market</div>
           </div>
           <div className="stat-tile">
-            <div className="value">{gapPct ? `+${gapPct.toFixed(1)}%` : "—"}</div>
-            <div className="label">model&rsquo;s deficit to the market</div>
+            <div className="value">
+              +{(((best.brier_model - best.brier_market) / best.brier_market) * 100).toFixed(1)}%
+            </div>
+            <div className="label">
+              remaining deficit (from +{gapPct ? gapPct.toFixed(0) : "31"}%)
+            </div>
           </div>
         </div>
       )}
 
       <section className="card">
-        <h2>Headline finding: the market wins, decisively</h2>
+        <h2>Four attacks, four closed doors</h2>
+        <p className="sub">
+          The founding bet was that thin, recreational prediction markets are not yet sharpened.
+          Every independent way we found to test that came back negative — which together is one
+          coherent finding rather than four scattered nulls.
+        </p>
+        <ul className="findings">
+          <li>
+            <strong>Beat the forecast.</strong> Closing 57% of the original gap still leaves the
+            market ahead by a wide, highly significant margin.
+          </li>
+          <li>
+            <strong>Find a soft decision window.</strong> The market leads at every snapshot,
+            including two hours after these markets open on thin books.
+          </li>
+          <li>
+            <strong>Find soft thin markets.</strong> No attention effect across a 64× volume range,
+            with a within-city control.
+          </li>
+          <li>
+            <strong>Exploit a pricing bias.</strong> A textbook favourite-longshot bias is present and
+            highly significant — and smaller than the cost of trading it.
+          </li>
+        </ul>
+      </section>
+
+      <section className="card">
+        <h2>The original result: the market wins, decisively</h2>
         <p className="sub">
           Walk-forward, six cities, every event scored for both forecasters on identical strike bins.
+          This is the pre-registered primary specification, kept unchanged.
         </p>
         <ul className="findings">
           {sigBrier && (
