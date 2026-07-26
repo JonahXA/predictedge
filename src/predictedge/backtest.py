@@ -55,15 +55,23 @@ class Variant:
     spread_sigma: bool = False
     weighted: bool = False
     empirical_shape: bool = False
+    pooled_weights: bool = False  # learn member skill across all cities, not one
+    # Variant this one differs from by exactly one change, so the
+    # variant-vs-variant test attributes the difference to that change.
+    parent: str | None = None
 
 
 BASELINE = Variant("baseline (single NWP)")
-ENSEMBLE = Variant("ensemble (6-model mean)", ensemble=True)
-ENSEMBLE_SPREAD = Variant("ensemble + spread-conditional sigma", ensemble=True, spread_sigma=True)
-WEIGHTED = Variant("+ skill-weighted members", ensemble=True, spread_sigma=True, weighted=True)
+ENSEMBLE = Variant("ensemble (6-model mean)", ensemble=True, parent=BASELINE.name)
+ENSEMBLE_SPREAD = Variant("ensemble + spread-conditional sigma", ensemble=True,
+                          spread_sigma=True, parent=ENSEMBLE.name)
+WEIGHTED = Variant("+ skill-weighted members", ensemble=True, spread_sigma=True,
+                   weighted=True, parent=ENSEMBLE_SPREAD.name)
 EMPIRICAL = Variant("+ empirical residual shape", ensemble=True, spread_sigma=True,
-                    weighted=True, empirical_shape=True)
-VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED, EMPIRICAL]
+                    weighted=True, empirical_shape=True, parent=WEIGHTED.name)
+POOLED = Variant("+ pooled member skill", ensemble=True, spread_sigma=True,
+                 weighted=True, pooled_weights=True, parent=WEIGHTED.name)
+VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED, EMPIRICAL, POOLED]
 
 # Earlier decision times. Day-before snapshots need the 2-day-lead
 # forecast (the 1-day run isn't issued yet) and a 2-day error lag; the
@@ -145,7 +153,14 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
         else:
             members = row_fc.to_numpy(float)
             if variant.weighted:
-                usable_m = [e for d, e in member_history[st] if (ev.date - d).days >= snap.error_lag]
+                # Pooled draws on every city's history; the lag rule still
+                # excludes same-day observations, so no city ever informs
+                # another about a day that hasn't finished.
+                src = (
+                    [x for hs in member_history.values() for x in hs]
+                    if variant.pooled_weights else member_history[st]
+                )
+                usable_m = [e for d, e in src if (ev.date - d).days >= snap.error_lag]
                 w = _member_weights(usable_m, len(members))
                 ok = np.isfinite(members)
                 fc = float((w[ok] * members[ok]).sum() / w[ok].sum()) if ok.any() else None
@@ -303,14 +318,16 @@ def compare() -> pd.DataFrame:
         for name, g in scored.items():
             d = (g[f"{metric}_model"] - g[f"{metric}_market"]).to_numpy(float)
             rows.append(_test(d, g["date"].to_numpy(), f"{name} vs market", metric, len(d)))
-        # Each variant against the one before it, aligned on shared events,
-        # so every row isolates a single change.
-        for prev, cur in zip(VARIANTS, VARIANTS[1:]):
-            a, b = scored[cur.name], scored[prev.name]
+        # Each variant against its declared parent, aligned on shared
+        # events, so every row isolates a single change.
+        for cur in VARIANTS:
+            if cur.parent is None:
+                continue
+            a, b = scored[cur.name], scored[cur.parent]
             common = a.index.intersection(b.index)
             d = (a.loc[common, f"{metric}_model"] - b.loc[common, f"{metric}_model"]).to_numpy(float)
             rows.append(_test(d, a.loc[common, "date"].to_numpy(),
-                              f"{cur.name} vs {prev.name}", metric, len(common)))
+                              f"{cur.name} vs {cur.parent}", metric, len(common)))
 
     summary = pd.DataFrame([
         {"variant": name, "events": len(g),

@@ -4,3 +4,4 @@ ensemble (6-model mean),413,0.6964,0.5845,1.3614,1.0699,1.914
 ensemble + spread-conditional sigma,413,0.6882,0.5845,1.3377,1.0699,1.914
 + skill-weighted members,413,0.6787,0.5845,1.3086,1.0699,1.719
 + empirical residual shape,413,0.6782,0.5845,1.3005,1.0699,1.719
++ pooled member skill,413,0.6774,0.5845,1.3091,1.0699,1.762
