@@ -9,9 +9,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Legend, tooltipStyle, usePalette } from "./palette";
+import { tooltipStyle, usePalette } from "./palette";
 
 type Row = {
+  variant?: string;
   snapshot: string;
   events: number;
   brier_model: number;
@@ -19,24 +20,65 @@ type Row = {
   d_brier: number;
 };
 
-/** Brier score at each decision time, earliest (market open) to latest.
- *  The market's line falls as the event approaches while the baseline's
- *  stays flat — the widening gap is information entering the price. */
+const SERIES = {
+  baseline: "Baseline model",
+  improved: "Improved model",
+  market: "Kalshi market",
+} as const;
+
+/** Brier at each decision time. The market's line falls as the event
+ *  approaches while both models stay flat — the widening gap is
+ *  information entering the price that our archive cannot follow. */
 export default function SnapshotSweep({ rows }: { rows: Row[] }) {
   const p = usePalette();
+  const variants = [...new Set(rows.map((r) => r.variant).filter(Boolean))] as string[];
+  const baselineName = variants.find((v) => v.toLowerCase().includes("baseline"));
+  const improvedName = variants.find((v) => v !== baselineName);
+
+  const order = rows
+    .filter((r) => !baselineName || r.variant === baselineName)
+    .map((r) => r.snapshot);
+  const merged = order.map((snapshot) => {
+    const b = rows.find((r) => r.snapshot === snapshot && (!baselineName || r.variant === baselineName));
+    const i = improvedName ? rows.find((r) => r.snapshot === snapshot && r.variant === improvedName) : undefined;
+    return {
+      snapshot,
+      baseline: b?.brier_model ?? null,
+      improved: i?.brier_model ?? null,
+      market: b?.brier_market ?? null,
+      events: b?.events ?? 0,
+    };
+  });
+
+  const lines: [keyof typeof SERIES, string, number][] = [
+    ["baseline", p.muted, 1.5],
+    ["improved", p.model, 2],
+    ["market", p.market, 2],
+  ];
 
   return (
     <>
-      <Legend modelLabel="Baseline model" marketLabel="Kalshi market (de-vigged)" />
+      <div className="legend">
+        {improvedName && (
+          <span>
+            <span className="swatch" style={{ background: "var(--muted)" }} />
+            {SERIES.baseline}
+          </span>
+        )}
+        <span>
+          <span className="swatch" style={{ background: "var(--series-model)" }} />
+          {improvedName ? SERIES.improved : SERIES.baseline}
+        </span>
+        <span>
+          <span className="swatch" style={{ background: "var(--series-market)" }} />
+          {SERIES.market} (de-vigged)
+        </span>
+      </div>
       <div className="chart-scroll">
         <ResponsiveContainer width="100%" height={300} minWidth={560}>
-          <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+          <LineChart data={merged} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={p.grid} strokeWidth={1} vertical={false} />
-            <XAxis
-              dataKey="snapshot"
-              tick={{ fill: p.muted, fontSize: 11 }}
-              stroke={p.baseline}
-            />
+            <XAxis dataKey="snapshot" tick={{ fill: p.muted, fontSize: 11 }} stroke={p.baseline} />
             <YAxis
               domain={["auto", "auto"]}
               tick={{ fill: p.muted, fontSize: 12 }}
@@ -52,28 +94,25 @@ export default function SnapshotSweep({ rows }: { rows: Row[] }) {
             />
             <Tooltip
               contentStyle={tooltipStyle(p)}
-              formatter={(v: number, name: string) => [
-                v.toFixed(4),
-                name === "brier_model" ? "Baseline model" : "Market",
-              ]}
+              formatter={(v: number, name: string) => [v.toFixed(4), SERIES[name as keyof typeof SERIES] ?? name]}
               labelFormatter={(l: string, payload) =>
                 `${l} · ${payload?.[0]?.payload?.events ?? "?"} events`
               }
             />
-            <Line
-              dataKey="brier_model"
-              stroke={p.model}
-              strokeWidth={2}
-              dot={{ r: 3, fill: p.model, strokeWidth: 0 }}
-              isAnimationActive={false}
-            />
-            <Line
-              dataKey="brier_market"
-              stroke={p.market}
-              strokeWidth={2}
-              dot={{ r: 3, fill: p.market, strokeWidth: 0 }}
-              isAnimationActive={false}
-            />
+            {lines.map(([key, color, width]) =>
+              key === "baseline" && !improvedName ? null : (
+                <Line
+                  key={key}
+                  dataKey={key}
+                  stroke={color}
+                  strokeWidth={width}
+                  strokeDasharray={key === "baseline" ? "4 3" : undefined}
+                  dot={{ r: 3, fill: color, strokeWidth: 0 }}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              )
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>

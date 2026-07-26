@@ -29,6 +29,7 @@ type Sig = {
 };
 
 type Sweep = {
+  variant?: string;
   snapshot: string;
   lead_days: number;
   events: number;
@@ -113,7 +114,14 @@ export default function Home() {
   const primary = data.evaluation?.find((e) => e.sample.startsWith("primary"));
   const sigBrier = data.significance?.find((s) => s.metric === "brier" && s.sample === "primary");
   const gapPct = primary ? ((primary.brier_model - primary.brier_market) / primary.brier_market) * 100 : null;
+  const best = data.variants?.[data.variants.length - 1];
+  const bestSweep = data.sweep?.filter((s) => !s.variant || !s.variant.includes("baseline"));
   const earliest = data.sweep?.[0];
+  const tightest = bestSweep?.reduce(
+    (a, b) => (b.d_brier < a.d_brier ? b : a),
+    bestSweep[0]
+  );
+  const primaryGap = bestSweep?.[bestSweep.length - 1];
 
   return (
     <main>
@@ -198,10 +206,27 @@ export default function Home() {
             2-day-lead forecast and a 2-day error lag, so every input stays strictly pre-snapshot.
           </p>
           <SnapshotSweep rows={data.sweep} />
+          {tightest && primaryGap && tightest.snapshot !== primaryGap.snapshot && (
+            <ul className="findings" style={{ marginTop: 18 }}>
+              <li>
+                The improved model&rsquo;s gap is <strong>smallest at {tightest.snapshot}</strong> (+
+                {tightest.d_brier.toFixed(3)}) and widens to +{primaryGap.d_brier.toFixed(3)} by{" "}
+                {primaryGap.snapshot} — while the model&rsquo;s own Brier stays flat, because it is
+                frozen at the day-ahead forecast.
+              </li>
+              <li>
+                That widening happens exactly when fresh model runs land. Roughly{" "}
+                <strong>{(primaryGap.d_brier - tightest.d_brier).toFixed(3)} of the gap is
+                information we cannot access</strong>, and ~{tightest.d_brier.toFixed(3)} persists even
+                at matched vintage.
+              </li>
+            </ul>
+          )}
           <div className="table-scroll" style={{ marginTop: 18 }}>
             <table>
               <thead>
                 <tr>
+                  {data.sweep.some((s) => s.variant) && <th>Variant</th>}
                   <th>Snapshot</th>
                   <th>Lead</th>
                   <th>Events</th>
@@ -214,7 +239,8 @@ export default function Home() {
               </thead>
               <tbody>
                 {data.sweep.map((r) => (
-                  <tr key={r.snapshot}>
+                  <tr key={`${r.variant ?? ""}-${r.snapshot}`}>
+                    {data.sweep!.some((s) => s.variant) && <td>{r.variant}</td>}
                     <td>{r.snapshot}</td>
                     <td>{r.lead_days}d</td>
                     <td>{r.events}</td>

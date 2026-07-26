@@ -92,6 +92,44 @@ This is why the confound mattered. Reporting result #1 as "the market is smart" 
 
 > Methodology note: the primary specification (single NWP, D 09:00Z) stays pre-registered and unchanged; the ensemble is reported as a disclosed follow-up experiment, not a retroactive redefinition of the baseline. Both are in git.
 
+## The improvement ladder — including what didn't work
+
+Each variant differs from its parent by exactly one change, and is scored on identical events, bins and snapshot (`predictedge compare`):
+
+| variant | MAE | Brier | log loss | vs parent (Brier) | significant? |
+|---|---|---|---|---|---|
+| baseline (single NWP) | 2.33°F | 0.7674 | 1.5966 | — | — |
+| ensemble (6-model mean) | 1.91°F | 0.6964 | 1.3614 | −0.0709, p < 0.0001 | ✅ |
+| + spread-conditional σ | 1.91°F | 0.6882 | 1.3377 | −0.0083, p = 0.003 | ✅ |
+| + skill-weighted members | **1.72°F** | **0.6787** | **1.3086** | −0.0095, p = 0.031 | ✅ |
+| + empirical residual shape | 1.72°F | 0.6782 | 1.3005 | −0.0005, p = 0.78 | ❌ |
+| + pooled member skill | 1.76°F | 0.6774 | 1.3091 | −0.0012, p = 0.71 | ❌ |
+
+**What worked.** Averaging six NWP systems; widening σ on days the members disagree (fit walk-forward as var = a + b·spread²); weighting members by inverse walk-forward MSE (skill is very uneven — ICON RMSE 2.52 vs ECMWF 4.32).
+
+**What didn't, and is reported anyway.** Residuals are *significantly* non-normal (skew −0.71, excess kurtosis 1.41, D'Agostino p = 1.8e-10), so we replaced the Normal with a walk-forward empirical residual CDF — and it changed nothing measurable (p = 0.78). Real misspecification, immaterial consequence. Pooling member skill across cities also did nothing (p = 0.71) and slightly hurt MAE. Both stay in the variant table rather than being quietly dropped.
+
+## Sixth result: how much of the gap is skill, and how much is access?
+
+Re-running the decision-time sweep with the improved model separates the two:
+
+| snapshot | model Brier | market Brier | ΔBrier |
+|---|---|---|---|
+| D−1 16:00Z (open + 2h) | 0.716 | 0.650 | +0.066 |
+| D−1 21:00Z | 0.717 | 0.639 | +0.078 |
+| **D 01:00Z** | 0.682 | 0.629 | **+0.054** |
+| D 05:00Z | 0.682 | 0.604 | +0.078 |
+| D 09:00Z (primary) | 0.679 | 0.584 | +0.094 |
+
+The model's Brier is **flat at 0.682** from 01:00Z to 09:00Z — it is frozen at the day-ahead forecast — while the market improves 0.629 → 0.584. The gap is narrowest exactly where the information vintages are most comparable, and widens precisely during the hours when 00Z/06Z runs arrive.
+
+So the +0.094 primary gap decomposes roughly as:
+
+- **~0.054 — genuine remaining edge** at comparable information vintage. Real, and we have not closed it.
+- **~0.040 — information access.** Open-Meteo's archive exposes no lead shorter than `previous_day1`; traders at 09:00Z are using runs we cannot retrieve historically. This is a limitation of our data, not evidence about traders.
+
+That distinction matters: roughly 43% of what remains isn't a modeling failure at all, it's an archive we don't have.
+
 ## Dashboard
 
 **[jonahxa.github.io/predictedge](https://jonahxa.github.io/predictedge/)**
