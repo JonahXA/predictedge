@@ -141,6 +141,76 @@ So the +0.079 primary gap decomposes roughly as:
 
 That distinction matters: roughly **half of what remains isn't a modeling failure at all**, it's an archive we don't have. Of the original +0.183 baseline gap, 57% was our estimator, ~22% is information access, and ~21% is a genuine edge we have not explained.
 
+## Eighth result: market sharpness is not bought with attention
+
+The first three results were all measured on the most heavily traded weather series on the exchange — the least favourable place to test a thesis about *thin, recreational* markets. So we ran the identical model against **40 series (20 cities × daily high and daily low), 2,725 events, spanning a 64× range in traded volume** (1,349 → 86,013 per market).
+
+The liquidity gradient is unambiguously real:
+
+> thinner markets quote **much** wider — `mean_spread ~ log10(volume)`, r = **−0.81**, p < 0.0001. Low-temperature markets quote 11–15¢ spreads against 3–4¢ for the thick high markets.
+
+It buys no accuracy at all:
+
+| test | effect | 95% CI | p |
+|---|---|---|---|
+| ΔBrier ~ log10(volume), all 40 series | +0.014 / decade | [−0.012, +0.040] | 0.27 |
+| high-temperature series only | −0.002 | [−0.050, +0.046] | 0.93 |
+| low-temperature series only | +0.041 | [−0.052, +0.133] | 0.37 |
+| **paired within city (high − low)** | **+0.012** | [−0.009, +0.033] | 0.25 |
+| sensitivity: tight-spread events only | +0.010 | [−0.018, +0.038] | 0.47 |
+
+The paired design is the strongest piece: a city's high and low markets share a station, a day and an NWS resolution source, and differ ~6× in volume, so geography and forecast difficulty cancel out. The aggregate direction is if anything *opposite* to the thesis — thin low markets show a smaller gap (+0.053) than thick high markets (+0.065), at near-identical forecast difficulty (MAE 1.81 vs 1.79°F).
+
+Slope CIs are reported rather than bare p-values, so this states what it rules out: across the full observed range the effect is at most ~0.07 Brier and may be zero or negative. **A market trading 1,349 per contract prices temperature about as well as one trading 86,013.**
+
+Two design decisions this result depends on, both of which would have silently broken it:
+
+- **Daily lows happen before dawn.** A fixed 09:00 UTC snapshot is already 05:00 in New York, so the low may have *occurred* — the market would partly know the outcome while a day-ahead forecast would not, making thin low markets look artificially sharp. The study snapshots at **local midnight**, putting the whole local day ahead of the decision everywhere.
+- **Thin markets quote wider**, so the headline backtest's ≤15¢ filter would preferentially discard the very series under study. The study reports all quoted events and carries the restricted sample as a disclosed sensitivity.
+
+## Ninth result: the price is measurably wrong — by less than the cost of fixing it
+
+Every result above asks whether our *forecast* beats the market's. A different question: is the market's *pricing* biased in a way that needs no forecasting edge to exploit? The classic form is the favourite-longshot bias.
+
+It is present, and it is the strongest statistical signal in the project (16,350 bin-observations):
+
+| market price | realized | z |
+|---|---|---|
+| 0.95% | **0.49%** | **+4.1** |
+| 3.3% | **1.9%** | **+5.3** |
+| 7.2% | 5.6% | +2.9 |
+| 14.8% | 13.1% | +2.2 |
+| 41.5% | **44.2%** | **−2.5** |
+| 57.7% | **61.8%** | **−2.3** |
+
+Perfectly monotonic: longshots trade rich, favourites trade cheap.
+
+Then subtract what it costs to act on it — half the bid-ask spread, plus exchange fees:
+
+| price | gross edge | half-spread | fee | **net** |
+|---|---|---|---|---|
+| 0.95¢ | +0.46¢ | 0.66¢ | 0.07¢ | **−0.26¢** |
+| **3.3¢** | +1.38¢ | 1.12¢ | 0.22¢ | **+0.04¢** |
+| 7.2¢ | +1.55¢ | 1.52¢ | 0.47¢ | **−0.44¢** |
+| 41¢ | −2.77¢ | 2.53¢ | 1.70¢ | **−1.46¢** |
+
+**One bucket of eight survives, by 0.04¢ on a 3.3¢ contract** — and that survivor is one marginal positive out of eight tests, discovered in-sample, resting on an unverified fee placeholder, priced against a mid you cannot actually trade at, and subject to adverse selection in exactly the thin books where it appears. It is the noise floor, not an edge.
+
+This is what efficiency looks like from the inside: **the price is wrong in a highly significant way, by less than the cost of correcting it.** Reporting the gross bias without the net column would have been the most misleading thing this project could publish.
+
+## Where this leaves the thesis
+
+Four independent attacks, all closed:
+
+1. **Beat the forecast** — 13.6% behind on Brier at the decision point (p < 0.0001), after closing 57% of the original gap.
+2. **Find a soft decision window** — the market leads at all five snapshots, including two hours after open.
+3. **Find soft thin markets** — no attention effect across a 64× volume range, with a within-city control.
+4. **Exploit a pricing bias** — real and highly significant, but sub-cost.
+
+These are not four scattered nulls; they are one coherent finding. **Kalshi's weather complex is efficient.** The founding bet — that thinner, more recreational money leaves these markets unsharpened — is answered, and the answer is no.
+
+The economics series remain structurally the most attractive target, because a scheduled BLS/BEA release has no overnight model run to lose a race to. But a survey of every daily and weekly Economics series found the best candidate has **58 resolved events** against the 2,725 that got weather to p < 0.0001. That study is premature, not impossible, so those series are now archived daily and the question is deferred rather than guessed at.
+
 ## Dashboard
 
 **[jonahxa.github.io/predictedge](https://jonahxa.github.io/predictedge/)**
