@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-26T01:17:01+00:00",
+ "generated_at": "2026-07-26T01:20:24+00:00",
  "cities": {
   "KXHIGHNY": "New York (Central Park)",
   "KXHIGHCHI": "Chicago (Midway)",
@@ -768,6 +768,24 @@
    "logloss_model": 1.2683,
    "logloss_market": 1.0699,
    "forecast_mae": 1.764
+  },
+  {
+   "variant": "+ linear calibration",
+   "events": 413,
+   "brier_model": 0.665,
+   "brier_market": 0.5845,
+   "logloss_model": 1.2503,
+   "logloss_market": 1.0699,
+   "forecast_mae": 1.682
+  },
+  {
+   "variant": "+ time-lagged members",
+   "events": 413,
+   "brier_model": 0.6733,
+   "brier_market": 0.5845,
+   "logloss_model": 1.2827,
+   "logloss_market": 1.0699,
+   "forecast_mae": 1.701
   }
  ],
  "variant_significance": [
@@ -838,12 +856,34 @@
    "p_dm": 0.0
   },
   {
+   "comparison": "+ linear calibration vs market",
+   "metric": "brier",
+   "events": 413,
+   "mean_diff": 0.08049,
+   "ci_low": 0.0544,
+   "ci_high": 0.10585,
+   "p_bootstrap": 0.0,
+   "dm_stat": 3.991,
+   "p_dm": 0.0002
+  },
+  {
+   "comparison": "+ time-lagged members vs market",
+   "metric": "brier",
+   "events": 413,
+   "mean_diff": 0.08874,
+   "ci_low": 0.06612,
+   "ci_high": 0.11181,
+   "p_bootstrap": 0.0,
+   "dm_stat": 5.524,
+   "p_dm": 0.0
+  },
+  {
    "comparison": "ensemble (multi-model mean) vs baseline (single NWP)",
    "metric": "brier",
    "events": 413,
    "mean_diff": -0.08154,
-   "ci_low": -0.11197,
-   "ci_high": -0.05115,
+   "ci_low": -0.11058,
+   "ci_high": -0.05272,
    "p_bootstrap": 0.0,
    "dm_stat": -5.148,
    "p_dm": 0.0
@@ -853,8 +893,8 @@
    "metric": "brier",
    "events": 413,
    "mean_diff": -0.01152,
-   "ci_low": -0.01603,
-   "ci_high": -0.00687,
+   "ci_low": -0.01601,
+   "ci_high": -0.00702,
    "p_bootstrap": 0.0,
    "dm_stat": -4.393,
    "p_dm": 0.0
@@ -865,8 +905,8 @@
    "events": 413,
    "mean_diff": -0.0104,
    "ci_low": -0.01807,
-   "ci_high": -0.00273,
-   "p_bootstrap": 0.0054,
+   "ci_high": -0.00278,
+   "p_bootstrap": 0.0084,
    "dm_stat": -2.347,
    "p_dm": 0.0218
   },
@@ -875,9 +915,9 @@
    "metric": "brier",
    "events": 413,
    "mean_diff": 0.0009,
-   "ci_low": -0.00404,
-   "ci_high": 0.00647,
-   "p_bootstrap": 0.7604,
+   "ci_low": -0.00412,
+   "ci_high": 0.00646,
+   "p_bootstrap": 0.766,
    "dm_stat": 0.366,
    "p_dm": 0.7153
   },
@@ -886,19 +926,41 @@
    "metric": "brier",
    "events": 413,
    "mean_diff": 0.004,
-   "ci_low": -0.00111,
-   "ci_high": 0.00897,
-   "p_bootstrap": 0.1148,
+   "ci_low": -0.001,
+   "ci_high": 0.00907,
+   "p_bootstrap": 0.12,
    "dm_stat": 1.311,
    "p_dm": 0.1941
+  },
+  {
+   "comparison": "+ linear calibration vs + skill-weighted members",
+   "metric": "brier",
+   "events": 413,
+   "mean_diff": 0.00108,
+   "ci_low": -0.00881,
+   "ci_high": 0.01114,
+   "p_bootstrap": 0.8202,
+   "dm_stat": 0.14,
+   "p_dm": 0.8889
+  },
+  {
+   "comparison": "+ time-lagged members vs + skill-weighted members",
+   "metric": "brier",
+   "events": 413,
+   "mean_diff": 0.00934,
+   "ci_low": 0.00032,
+   "ci_high": 0.01831,
+   "p_bootstrap": 0.0436,
+   "dm_stat": 2.617,
+   "p_dm": 0.0109
   },
   {
    "comparison": "baseline (single NWP) vs market",
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.52671,
-   "ci_low": 0.42702,
-   "ci_high": 0.63261,
+   "ci_low": 0.42745,
+   "ci_high": 0.62956,
    "p_bootstrap": 0.0,
    "dm_stat": 8.789,
    "p_dm": 0.0
@@ -908,8 +970,8 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.25483,
-   "ci_low": 0.2064,
-   "ci_high": 0.30249,
+   "ci_low": 0.20744,
+   "ci_high": 0.30265,
    "p_bootstrap": 0.0,
    "dm_stat": 8.945,
    "p_dm": 0.0
@@ -919,8 +981,8 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.21529,
-   "ci_low": 0.16502,
-   "ci_high": 0.26525,
+   "ci_low": 0.16451,
+   "ci_high": 0.26425,
    "p_bootstrap": 0.0,
    "dm_stat": 6.644,
    "p_dm": 0.0
@@ -930,8 +992,8 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.18162,
-   "ci_low": 0.13022,
-   "ci_high": 0.2308,
+   "ci_low": 0.13138,
+   "ci_high": 0.23143,
    "p_bootstrap": 0.0,
    "dm_stat": 5.164,
    "p_dm": 0.0
@@ -941,8 +1003,8 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.18296,
-   "ci_low": 0.13261,
-   "ci_high": 0.23165,
+   "ci_low": 0.13397,
+   "ci_high": 0.23248,
    "p_bootstrap": 0.0,
    "dm_stat": 5.226,
    "p_dm": 0.0
@@ -952,10 +1014,32 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.19846,
-   "ci_low": 0.1483,
-   "ci_high": 0.24788,
+   "ci_low": 0.14756,
+   "ci_high": 0.24689,
    "p_bootstrap": 0.0,
    "dm_stat": 5.883,
+   "p_dm": 0.0
+  },
+  {
+   "comparison": "+ linear calibration vs market",
+   "metric": "logloss",
+   "events": 413,
+   "mean_diff": 0.18047,
+   "ci_low": 0.12347,
+   "ci_high": 0.23887,
+   "p_bootstrap": 0.0,
+   "dm_stat": 4.004,
+   "p_dm": 0.0002
+  },
+  {
+   "comparison": "+ time-lagged members vs market",
+   "metric": "logloss",
+   "events": 413,
+   "mean_diff": 0.2128,
+   "ci_low": 0.16461,
+   "ci_high": 0.26037,
+   "p_bootstrap": 0.0,
+   "dm_stat": 6.59,
    "p_dm": 0.0
   },
   {
@@ -963,8 +1047,8 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": -0.27189,
-   "ci_low": -0.36397,
-   "ci_high": -0.18499,
+   "ci_low": -0.36193,
+   "ci_high": -0.18609,
    "p_bootstrap": 0.0,
    "dm_stat": -5.342,
    "p_dm": 0.0
@@ -974,8 +1058,8 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": -0.03954,
-   "ci_low": -0.05069,
-   "ci_high": -0.0288,
+   "ci_low": -0.05068,
+   "ci_high": -0.02864,
    "p_bootstrap": 0.0,
    "dm_stat": -4.882,
    "p_dm": 0.0
@@ -985,9 +1069,9 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": -0.03366,
-   "ci_low": -0.05023,
-   "ci_high": -0.01816,
-   "p_bootstrap": 0.0,
+   "ci_low": -0.05035,
+   "ci_high": -0.0176,
+   "p_bootstrap": 0.0004,
    "dm_stat": -3.367,
    "p_dm": 0.0013
   },
@@ -996,9 +1080,9 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.00134,
-   "ci_low": -0.01046,
-   "ci_high": 0.01351,
-   "p_bootstrap": 0.8344,
+   "ci_low": -0.01081,
+   "ci_high": 0.01393,
+   "p_bootstrap": 0.838,
    "dm_stat": 0.236,
    "p_dm": 0.8144
   },
@@ -1007,11 +1091,33 @@
    "metric": "logloss",
    "events": 413,
    "mean_diff": 0.01683,
-   "ci_low": 0.00584,
-   "ci_high": 0.02787,
-   "p_bootstrap": 0.0032,
+   "ci_low": 0.00616,
+   "ci_high": 0.02827,
+   "p_bootstrap": 0.0026,
    "dm_stat": 2.676,
    "p_dm": 0.0093
+  },
+  {
+   "comparison": "+ linear calibration vs + skill-weighted members",
+   "metric": "logloss",
+   "events": 413,
+   "mean_diff": -0.00115,
+   "ci_low": -0.02569,
+   "ci_high": 0.02362,
+   "p_bootstrap": 0.94,
+   "dm_stat": -0.086,
+   "p_dm": 0.932
+  },
+  {
+   "comparison": "+ time-lagged members vs + skill-weighted members",
+   "metric": "logloss",
+   "events": 413,
+   "mean_diff": 0.03117,
+   "ci_low": 0.01089,
+   "ci_high": 0.05189,
+   "p_bootstrap": 0.0028,
+   "dm_stat": 3.066,
+   "p_dm": 0.0031
   }
  ],
  "reliability": [

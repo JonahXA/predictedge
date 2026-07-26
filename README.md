@@ -104,12 +104,21 @@ Each variant differs from its parent by exactly one change, and is scored on ide
 | + skill-weighted members | **1.68°F** | **0.6639** | **1.2515** | −0.0104, p = 0.022 | ✅ |
 | + empirical residual shape | 1.68°F | 0.6648 | 1.2528 | +0.0009, p = 0.72 | ❌ |
 | + pooled member skill | 1.76°F | 0.6679 | 1.2683 | +0.0040, p = 0.19 | ❌ |
+| + linear calibration | 1.68°F | 0.6650 | 1.2503 | +0.0011, p = 0.89 | ❌ |
+| + time-lagged members | 1.70°F | 0.6733 | 1.2827 | +0.0093, p = 0.011 | ❌ **worse** |
 
 **What worked.** Averaging ten NWP systems (ECMWF-IFS, GFS, ICON, GEM, JMA, Météo-France, UKMO, ECMWF-AIFS, CMA, KNMI); widening σ on days the members disagree (fit walk-forward as var = a + b·spread²); weighting members by inverse walk-forward MSE (skill is very uneven — ICON RMSE 2.52 vs ECMWF 4.32).
 
 A trap worth naming: several Open-Meteo model ids are **aliases that return byte-identical series** (`gfs_hrrr` and `ncep_hrrr_conus` both return `gfs_seamless`; `arpege_world` returns Météo-France; `dmi`/`metno` return KNMI). Adding them naively would silently double-weight a model and shrink the apparent ensemble spread, so members are de-duplicated on ingest and a test pins that behavior.
 
-**What didn't, and is reported anyway.** Residuals are *significantly* non-normal (skew −0.71, excess kurtosis 1.41, D'Agostino p = 1.8e-10), so we replaced the Normal with a walk-forward empirical residual CDF — and it changed nothing measurable (p = 0.78). Real misspecification, immaterial consequence. Pooling member skill across cities also did nothing (p = 0.71) and slightly hurt MAE. Both stay in the variant table rather than being quietly dropped.
+**What didn't, and is reported anyway.** Four attempts in a row failed:
+
+- **Empirical residual shape.** Residuals are *significantly* non-normal (skew −0.71, excess kurtosis 1.41, D'Agostino p = 1.8e-10), so we replaced the Normal with a walk-forward empirical residual CDF. It changed nothing measurable (p = 0.72). Real misspecification, immaterial consequence.
+- **Pooled member skill** across cities: nothing (p = 0.19), slightly worse MAE.
+- **Linear calibration** (truth ~ a + b·forecast, to catch NWP compressing extremes): nothing (p = 0.89). The slope has nothing left to correct once the ensemble and bias shift are in.
+- **Time-lagged members** (adding the previous run cycle): **significantly worse** (+0.0093 Brier, p = 0.011). Weights shrink toward equal, so consistently staler members can't be discounted enough to pay for themselves.
+
+Four consecutive failures — three null, one harmful — is itself the finding: **estimation is plateaued.** Everything cheap and legitimate has been tried, and the model has stopped moving. What remains is not technique.
 
 ## Sixth result: how much of the gap is skill, and how much is access?
 
