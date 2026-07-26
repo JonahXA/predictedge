@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 from . import ingest, market, weather
-from .config import MAX_BIN_SPREAD, PRIOR_N, REPORTS_DIR, WEATHER_SERIES
+from .config import MAX_BIN_SPREAD, MIN_N_CALIB, PRIOR_N, REPORTS_DIR, WEATHER_SERIES
 from .models.baseline import ErrorState, bin_probs
 from .scoring import brier, logloss
 
@@ -56,6 +56,7 @@ class Variant:
     weighted: bool = False
     empirical_shape: bool = False
     pooled_weights: bool = False  # learn member skill across all cities, not one
+    linear_calib: bool = False  # correct conditional bias with a slope, not just a shift
     # Variant this one differs from by exactly one change, so the
     # variant-vs-variant test attributes the difference to that change.
     parent: str | None = None
@@ -71,7 +72,9 @@ EMPIRICAL = Variant("+ empirical residual shape", ensemble=True, spread_sigma=Tr
                     weighted=True, empirical_shape=True, parent=WEIGHTED.name)
 POOLED = Variant("+ pooled member skill", ensemble=True, spread_sigma=True,
                  weighted=True, pooled_weights=True, parent=WEIGHTED.name)
-VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED, EMPIRICAL, POOLED]
+CALIB = Variant("+ linear calibration", ensemble=True, spread_sigma=True,
+                weighted=True, linear_calib=True, parent=WEIGHTED.name)
+VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED, EMPIRICAL, POOLED, CALIB]
 
 # Earlier decision times. Day-before snapshots need the 2-day-lead
 # forecast (the 1-day run isn't issued yet) and a 2-day error lag; the
@@ -112,6 +115,33 @@ def _forecasts(markets: pd.DataFrame, lead_days: int,
     return out
 
 
+def _calibration(fcs: list[float], truths: list[float]) -> tuple[float, float]:
+    """Walk-forward linear calibration truth ~ a + b*forecast.
+
+    A pure bias shift can only move the forecast up or down; a slope also
+    corrects *conditional* bias, e.g. NWP compressing extremes toward the
+    seasonal mean. Both coefficients are shrunk toward the identity
+    mapping (a=0, b=1) by PRIOR_N pseudo-observations so early days stay
+    close to the raw forecast."""
+    n = len(fcs)
+    if n < MIN_N_CALIB:
+        return 0.0, 1.0
+    x = np.asarray(fcs, float)
+    y = np.asarray(truths, float)
+    xm, ym = x.mean(), y.mean()
+    denom = float(((x - xm) ** 2).sum())
+    if denom <= 0:
+        return 0.0, 1.0
+    b = float(((x - xm) * (y - ym)).sum() / denom)
+    a = float(ym - b * xm)
+    # Shrink toward identity; clip the slope so a wild fit can't invert
+    # or explode the forecast.
+    b = (n * b + PRIOR_N * 1.0) / (n + PRIOR_N)
+    a = (n * a + PRIOR_N * 0.0) / (n + PRIOR_N)
+    b = min(max(b, 0.5), 1.5)
+    return a, b
+
+
 def _member_weights(history: list[np.ndarray], k: int) -> np.ndarray:
     """Inverse-MSE member weights from past per-member errors, shrunk
     toward equal weighting by PRIOR_N pseudo-observations. Equal weights
@@ -136,6 +166,7 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
     forecasts = _forecasts(markets, snap.lead_days, variant)
     history: dict[str, list[tuple]] = {st: [] for st in WEATHER_SERIES}
     member_history: dict[str, list[tuple]] = {st: [] for st in WEATHER_SERIES}
+    history_full: dict[str, list[tuple]] = {st: [] for st in WEATHER_SERIES}
     rows, bin_rows = [], []
     ordered = markets[["event_ticker", "date", "series_ticker"]].drop_duplicates().sort_values(["date", "event_ticker"])
 
@@ -182,7 +213,13 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
             ).reindex(g["ticker"])
             usable = [(e, sp) for d, e, sp in history[st] if (ev.date - d).days >= snap.error_lag]
             state = ErrorState([e for e, _ in usable], [sp for _, sp in usable])
-            mu = fc + state.bias
+            if variant.linear_calib:
+                hist = [(f, t_) for d, _, _, f, t_ in history_full[st]
+                        if (ev.date - d).days >= snap.error_lag]
+                a, b = _calibration([f for f, _ in hist], [t_ for _, t_ in hist])
+                mu = a + b * fc
+            else:
+                mu = fc + state.bias
             sigma = state.sigma_for(spread) if variant.spread_sigma else state.sigma
             bins = list(zip(g["strike_type"], g["floor_strike"], g["cap_strike"]))
             cdf = state.residual_cdf(variant.spread_sigma) if variant.empirical_shape else None
@@ -223,6 +260,9 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
             truth = float(official.iloc[0])
             history[st].append((ev.date, truth - float(fc),
                                float(spread) if pd.notna(spread) else float("nan")))
+            history_full[st].append((ev.date, truth - float(fc),
+                                     float(spread) if pd.notna(spread) else float("nan"),
+                                     float(fc), truth))
             member_history[st].append((ev.date, truth - members))
         else:
             rows.append({"event_ticker": ev.event_ticker, "series": st, "date": ev.date, "skip": skip})

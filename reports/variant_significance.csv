@@ -5,19 +5,23 @@ ensemble + spread-conditional sigma vs market,brier,413,0.0898,0.06482,0.11362,0
 + skill-weighted members vs market,brier,413,0.07941,0.05594,0.10354,0.0,4.823,0.0
 + empirical residual shape vs market,brier,413,0.08031,0.05652,0.10401,0.0,4.851,0.0
 + pooled member skill vs market,brier,413,0.08341,0.0595,0.10755,0.0,5.06,0.0
-ensemble (multi-model mean) vs baseline (single NWP),brier,413,-0.08154,-0.11197,-0.05115,0.0,-5.148,0.0
-ensemble + spread-conditional sigma vs ensemble (multi-model mean),brier,413,-0.01152,-0.01603,-0.00687,0.0,-4.393,0.0
-+ skill-weighted members vs ensemble + spread-conditional sigma,brier,413,-0.0104,-0.01807,-0.00273,0.0054,-2.347,0.0218
-+ empirical residual shape vs + skill-weighted members,brier,413,0.0009,-0.00404,0.00647,0.7604,0.366,0.7153
-+ pooled member skill vs + skill-weighted members,brier,413,0.004,-0.00111,0.00897,0.1148,1.311,0.1941
-baseline (single NWP) vs market,logloss,413,0.52671,0.42702,0.63261,0.0,8.789,0.0
-ensemble (multi-model mean) vs market,logloss,413,0.25483,0.2064,0.30249,0.0,8.945,0.0
-ensemble + spread-conditional sigma vs market,logloss,413,0.21529,0.16502,0.26525,0.0,6.644,0.0
-+ skill-weighted members vs market,logloss,413,0.18162,0.13022,0.2308,0.0,5.164,0.0
-+ empirical residual shape vs market,logloss,413,0.18296,0.13261,0.23165,0.0,5.226,0.0
-+ pooled member skill vs market,logloss,413,0.19846,0.1483,0.24788,0.0,5.883,0.0
-ensemble (multi-model mean) vs baseline (single NWP),logloss,413,-0.27189,-0.36397,-0.18499,0.0,-5.342,0.0
-ensemble + spread-conditional sigma vs ensemble (multi-model mean),logloss,413,-0.03954,-0.05069,-0.0288,0.0,-4.882,0.0
-+ skill-weighted members vs ensemble + spread-conditional sigma,logloss,413,-0.03366,-0.05023,-0.01816,0.0,-3.367,0.0013
-+ empirical residual shape vs + skill-weighted members,logloss,413,0.00134,-0.01046,0.01351,0.8344,0.236,0.8144
-+ pooled member skill vs + skill-weighted members,logloss,413,0.01683,0.00584,0.02787,0.0032,2.676,0.0093
++ linear calibration vs market,brier,413,0.08049,0.0544,0.10585,0.0,3.991,0.0002
+ensemble (multi-model mean) vs baseline (single NWP),brier,413,-0.08154,-0.11069,-0.0518,0.0,-5.148,0.0
+ensemble + spread-conditional sigma vs ensemble (multi-model mean),brier,413,-0.01152,-0.01598,-0.00698,0.0,-4.393,0.0
++ skill-weighted members vs ensemble + spread-conditional sigma,brier,413,-0.0104,-0.01806,-0.0026,0.0068,-2.347,0.0218
++ empirical residual shape vs + skill-weighted members,brier,413,0.0009,-0.00415,0.00644,0.7612,0.366,0.7153
++ pooled member skill vs + skill-weighted members,brier,413,0.004,-0.00115,0.00894,0.1236,1.311,0.1941
++ linear calibration vs + skill-weighted members,brier,413,0.00108,-0.00893,0.0111,0.8062,0.14,0.8889
+baseline (single NWP) vs market,logloss,413,0.52671,0.429,0.63194,0.0,8.789,0.0
+ensemble (multi-model mean) vs market,logloss,413,0.25483,0.20635,0.30227,0.0,8.945,0.0
+ensemble + spread-conditional sigma vs market,logloss,413,0.21529,0.16302,0.26448,0.0,6.644,0.0
++ skill-weighted members vs market,logloss,413,0.18162,0.13116,0.23134,0.0,5.164,0.0
++ empirical residual shape vs market,logloss,413,0.18296,0.13392,0.23159,0.0,5.226,0.0
++ pooled member skill vs market,logloss,413,0.19846,0.14808,0.24867,0.0,5.883,0.0
++ linear calibration vs market,logloss,413,0.18047,0.12425,0.23811,0.0,4.004,0.0002
+ensemble (multi-model mean) vs baseline (single NWP),logloss,413,-0.27189,-0.36422,-0.18505,0.0,-5.342,0.0
+ensemble + spread-conditional sigma vs ensemble (multi-model mean),logloss,413,-0.03954,-0.05075,-0.02876,0.0,-4.882,0.0
++ skill-weighted members vs ensemble + spread-conditional sigma,logloss,413,-0.03366,-0.05025,-0.01716,0.0,-3.367,0.0013
++ empirical residual shape vs + skill-weighted members,logloss,413,0.00134,-0.01034,0.01383,0.8378,0.236,0.8144
++ pooled member skill vs + skill-weighted members,logloss,413,0.01683,0.00601,0.02785,0.0024,2.676,0.0093
++ linear calibration vs + skill-weighted members,logloss,413,-0.00115,-0.02608,0.02304,0.9348,-0.086,0.932

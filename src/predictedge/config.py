@@ -56,6 +56,7 @@ PRIOR_N = 10
 # from producing absurd distributions.
 MIN_N_SPREAD_FIT = 15  # observations before the spread fit is trusted at all
 MIN_N_SHAPE_FIT = 25  # observations before the empirical residual shape is trusted
+MIN_N_CALIB = 20  # observations before the linear calibration is fit at all
 MIN_SIGMA_F = 1.0
 MAX_SIGMA_F = 8.0
 MAX_SPREAD_SLOPE = 4.0
