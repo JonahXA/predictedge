@@ -35,7 +35,7 @@ def main() -> None:
         forecast.run()
     elif args.cmd == "sweep":
         from . import backtest
-        backtest.sweep()
+        backtest.sweep([backtest.BASELINE, backtest.WEIGHTED])
     elif args.cmd == "compare":
         from . import backtest
         backtest.compare()

@@ -249,15 +249,23 @@ def run() -> pd.DataFrame:
     return out
 
 
-def sweep() -> pd.DataFrame:
-    """Model-vs-market gap at each decision time, with significance."""
+def sweep(variants: list[Variant] | None = None) -> pd.DataFrame:
+    """Model-vs-market gap at each decision time, with significance.
+
+    Run across variants, this answers the question the estimator
+    improvements raised: if the market's remaining edge is *fresher
+    information* rather than skill, the gap should be smallest at the
+    earliest snapshot — where the market is also working from day-old
+    model runs — and widen as the market gains runs we cannot access.
+    """
     from .significance import cluster_bootstrap, diebold_mariano
 
     markets = _weather_events(ingest.load_markets())
     candles = ingest.load_candles()
     rows = []
-    for snap in SWEEP:
-        ev, _ = _score(markets, candles, snap)
+    for variant in variants or [BASELINE]:
+      for snap in SWEEP:
+        ev, _ = _score(markets, candles, snap, variant)
         g = ev.dropna(subset=["brier_model", "brier_market"])
         g = g[g["included"] == True]  # noqa: E712
         d = (g["brier_model"] - g["brier_market"]).to_numpy(float)
@@ -265,6 +273,7 @@ def sweep() -> pd.DataFrame:
         per_date = pd.DataFrame({"d": d, "date": g["date"]}).groupby("date")["d"].mean().sort_index()
         dm, p_dm = diebold_mariano(per_date.to_numpy())
         rows.append({
+            "variant": variant.name,
             "snapshot": snap.label, "lead_days": snap.lead_days,
             "events": len(g),
             "brier_model": round(g["brier_model"].mean(), 4),
@@ -275,7 +284,7 @@ def sweep() -> pd.DataFrame:
             "logloss_model": round(g["logloss_model"].mean(), 4),
             "logloss_market": round(g["logloss_market"].mean(), 4),
         })
-        print(f"{snap.label}: done ({len(g)} events)")
+        print(f"{variant.name} @ {snap.label}: done ({len(g)} events)")
     out = pd.DataFrame(rows)
     REPORTS_DIR.mkdir(exist_ok=True)
     out.to_csv(REPORTS_DIR / "snapshot_sweep.csv", index=False)
