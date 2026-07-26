@@ -16,6 +16,7 @@ def main() -> None:
     sub.add_parser("sweep", help="model-vs-market gap across decision-time snapshots")
     sub.add_parser("compare", help="model variants vs market and vs each other")
     sub.add_parser("thin", help="thin-market study: does the gap grow with volume?")
+    sub.add_parser("bias", help="favourite-longshot bias, gross and net of costs")
     sub.add_parser("export", help="write dashboard/public/data.json")
     args = ap.parse_args()
 
@@ -43,6 +44,9 @@ def main() -> None:
     elif args.cmd == "thin":
         from . import study
         study.run()
+    elif args.cmd == "bias":
+        from . import bias
+        bias.run()
     elif args.cmd == "export":
         from . import export
         export.run()
