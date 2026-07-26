@@ -171,6 +171,10 @@ def _member_weights(history: list[np.ndarray], k: int) -> np.ndarray:
         return equal
     errs = np.vstack(history)
     n = len(errs)
+    # A member with no observed errors yet gives an all-NaN column;
+    # nanmean would warn and yield NaN, so fall back to equal weights.
+    if np.isnan(errs).all(axis=0).any():
+        return equal
     with np.errstate(invalid="ignore"):
         mse = np.nanmean(errs**2, axis=0)
     if not np.isfinite(mse).all() or (mse <= 0).any():
