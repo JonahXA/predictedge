@@ -75,6 +75,23 @@ Same design swept across earlier decision times (`predictedge sweep`). Day-befor
 
 Two findings. First, there is **no soft window**: two hours after these markets open, with thin books, they already beat the public-NWP baseline decisively. Second, the market's Brier improves monotonically as the event approaches (0.647 → 0.581) while the baseline's stays flat — the widening gap is a direct measurement of information flowing into the price over the ~17 hours before the event day starts. Whatever traders are using (fresher model runs, human synthesis), they price it in early and keep accruing it.
 
+## Third result: 39% of the "market edge" was our own weak input
+
+The obvious confound in the first two results: was the market genuinely smarter, or was our forecast just under-powered? Open-Meteo's default `best_match` turns out to track **GFS exactly** — the baseline was one model, not a considered choice. Averaging six independent NWP systems (`ecmwf_ifs025`, `gfs`, `icon`, `gem`, `jma`, `meteofrance`), **all drawn from the same `previous_day1` archive**, changes the estimate without changing the information timing by a single minute.
+
+| variant | forecast MAE | Brier | log loss | ΔBrier vs market |
+|---|---|---|---|---|
+| baseline (single NWP) | 2.33°F | 0.767 | 1.597 | +0.183 |
+| ensemble (6-model mean) | **1.91°F** | **0.696** | **1.361** | **+0.112** |
+
+The ensemble improvement is real and significant: ΔBrier **−0.071** (95% CI [−0.099, −0.042], DM −4.66, p < 0.0001), Δlog loss −0.235. It closes **39% of the Brier gap** and 45% of the log-loss gap — with zero new information, purely by not being sloppy about the estimator.
+
+**But the market still wins decisively**: +0.112 Brier (CI [+0.088, +0.136], DM 7.86, p < 0.0001). So the honest conclusion splits in two — a large share of what looked like trader skill was our own measurement weakness, and a large, unambiguous remainder is not.
+
+This is why the confound mattered. Reporting result #1 as "the market is smart" would have been partly wrong.
+
+> Methodology note: the primary specification (single NWP, D 09:00Z) stays pre-registered and unchanged; the ensemble is reported as a disclosed follow-up experiment, not a retroactive redefinition of the baseline. Both are in git.
+
 ## Dashboard
 
 **[jonahxa.github.io/predictedge](https://jonahxa.github.io/predictedge/)**

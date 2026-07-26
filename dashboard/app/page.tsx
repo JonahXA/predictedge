@@ -73,6 +73,25 @@ const data = raw as unknown as {
   by_city?: City[];
   significance?: Sig[];
   sweep?: Sweep[];
+  variants?: {
+    variant: string;
+    events: number;
+    brier_model: number;
+    brier_market: number;
+    logloss_model: number;
+    logloss_market: number;
+    forecast_mae: number;
+  }[];
+  variant_significance?: {
+    comparison: string;
+    metric: string;
+    events: number;
+    mean_diff: number;
+    ci_low: number;
+    ci_high: number;
+    dm_stat: number;
+    p_dm: number;
+  }[];
   reliability?: { series: string; bin_mid: number; predicted: number; observed: number; n: number }[];
   modal_hit?: { model: number; market: number };
   live: { open: Forecast[]; resolved: Forecast[]; summary: { events: number; brier_model: number; brier_market: number } | null };
@@ -211,6 +230,58 @@ export default function Home() {
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {data.variants && data.variants.length > 1 && (
+        <section className="card">
+          <h2>How much of the gap was our own weak input?</h2>
+          <p className="sub">
+            Averaging six independent NWP systems, all drawn from the same day-ahead archive — a better
+            estimate on identical information timing, not fresher data.
+          </p>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Variant</th>
+                  <th>Forecast MAE</th>
+                  <th>Brier</th>
+                  <th>Log loss</th>
+                  <th>ΔBrier vs market</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.variants.map((v) => (
+                  <tr key={v.variant}>
+                    <td>{v.variant}</td>
+                    <td>{v.forecast_mae.toFixed(2)}°F</td>
+                    <td>{p4(v.brier_model)}</td>
+                    <td>{p4(v.logloss_model)}</td>
+                    <td>+{(v.brier_model - v.brier_market).toFixed(3)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {data.variant_significance && (
+            <ul className="findings" style={{ marginTop: 18 }}>
+              {data.variant_significance
+                .filter((s) => s.comparison.includes(" vs ") && s.comparison.includes("baseline") && !s.comparison.includes("market"))
+                .map((s) => (
+                  <li key={s.metric}>
+                    The ensemble improves <strong>{s.metric}</strong> by{" "}
+                    <strong>{Math.abs(s.mean_diff).toFixed(3)}</strong> (95% CI [{s.ci_low.toFixed(3)},{" "}
+                    {s.ci_high.toFixed(3)}], DM {s.dm_stat.toFixed(2)}, p {pval(s.p_dm)}) — with zero new
+                    information.
+                  </li>
+                ))}
+              <li>
+                A large share of the apparent &ldquo;market edge&rdquo; was our own measurement weakness.
+                The remainder — still significant at p &lt; 0.0001 — is not.
+              </li>
+            </ul>
+          )}
         </section>
       )}
 
