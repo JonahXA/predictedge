@@ -57,6 +57,7 @@ class Variant:
     empirical_shape: bool = False
     pooled_weights: bool = False  # learn member skill across all cities, not one
     linear_calib: bool = False  # correct conditional bias with a slope, not just a shift
+    lagged: bool = False  # also include the previous run cycle's members
     # Variant this one differs from by exactly one change, so the
     # variant-vs-variant test attributes the difference to that change.
     parent: str | None = None
@@ -74,7 +75,9 @@ POOLED = Variant("+ pooled member skill", ensemble=True, spread_sigma=True,
                  weighted=True, pooled_weights=True, parent=WEIGHTED.name)
 CALIB = Variant("+ linear calibration", ensemble=True, spread_sigma=True,
                 weighted=True, linear_calib=True, parent=WEIGHTED.name)
-VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED, EMPIRICAL, POOLED, CALIB]
+LAGGED = Variant("+ time-lagged members", ensemble=True, spread_sigma=True,
+                 weighted=True, lagged=True, parent=WEIGHTED.name)
+VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED, EMPIRICAL, POOLED, CALIB, LAGGED]
 
 # Earlier decision times. Day-before snapshots need the 2-day-lead
 # forecast (the 1-day run isn't issued yet) and a 2-day error lag; the
@@ -109,7 +112,14 @@ def _forecasts(markets: pd.DataFrame, lead_days: int,
             continue
         args = (cfg["lat"], cfg["lon"], cfg["tz"], dates.min(), dates.max())
         if variant.ensemble:
-            out[st] = weather.ensemble_highs(*args, lead_days=lead_days)
+            df = weather.ensemble_highs(*args, lead_days=lead_days)
+            if variant.lagged:
+                # The previous run cycle: individually staler, but partly
+                # independent, and the skill weighting decides its worth.
+                older = weather.ensemble_highs(*args, lead_days=lead_days + 1)
+                older.columns = [f"{c}_lag" for c in older.columns]
+                df = df.join(older, how="left")
+            out[st] = df
         else:
             out[st] = weather.day_ahead_highs(*args, lead_days=lead_days).to_frame("default")
     return out

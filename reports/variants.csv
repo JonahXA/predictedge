@@ -6,3 +6,4 @@ ensemble + spread-conditional sigma,413,0.6743,0.5845,1.2852,1.0699,1.883
 + empirical residual shape,413,0.6648,0.5845,1.2528,1.0699,1.682
 + pooled member skill,413,0.6679,0.5845,1.2683,1.0699,1.764
 + linear calibration,413,0.665,0.5845,1.2503,1.0699,1.682
++ time-lagged members,413,0.6733,0.5845,1.2827,1.0699,1.701
