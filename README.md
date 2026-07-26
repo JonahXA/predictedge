@@ -1,8 +1,17 @@
 # PredictEdge
 
-Pre-registered probabilistic forecasting research on **prediction markets** — starting with Kalshi's daily high-temperature contracts. The question: can honest, public-data modeling beat a market that isn't sharp yet?
+Pre-registered probabilistic forecasting research on **prediction markets** — Kalshi's daily temperature contracts. The question: can honest, public-data modeling beat a market that isn't sharp yet?
+
+**The answer, measured four independent ways, is no.** Kalshi's weather complex is efficient — at every decision time we can observe, across a 64× range of traded volume, and even where its own prices are provably biased. The founding bet that thin, recreational money leaves these markets unsharpened is answered, and it is wrong. The four negative results, and the ~57% of the apparent "market edge" that turned out to be *our own* measurement weakness, are the contribution.
 
 **No money is ever involved.** Everything here is paper measurement: forecasts are committed to git before events resolve, then scored against the market's own price. The gap to the market — positive or negative — is the research result.
+
+| finding | result |
+|---|---|
+| Beat the market's forecast | 13.6% behind on Brier at the decision point, p < 0.0001 |
+| Find a soft decision window | market leads at all 5 snapshots, including 2h after open |
+| Find soft thin markets | no attention effect over 64× volume, within-city control |
+| Exploit a pricing bias | favourite-longshot bias real (z = 5.3) but smaller than costs |
 
 ## Thesis, and how this differs from ClosingLine
 
