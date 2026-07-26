@@ -18,17 +18,78 @@ FORECASTS_DIR = ROOT / "forecasts"
 
 KALSHI_BASE = "https://api.elections.kalshi.com/trade-api/v2"
 
-# Daily-high-temperature series and the NWS station each one settles on.
-# Coordinates are the station's, so Open-Meteo forecasts target the same
-# point the market settles against.
-WEATHER_SERIES: dict[str, dict] = {
-    "KXHIGHNY": {"city": "New York (Central Park)", "lat": 40.783, "lon": -73.967, "tz": "America/New_York"},
-    "KXHIGHCHI": {"city": "Chicago (Midway)", "lat": 41.786, "lon": -87.752, "tz": "America/Chicago"},
-    "KXHIGHMIA": {"city": "Miami (Intl Airport)", "lat": 25.788, "lon": -80.317, "tz": "America/New_York"},
-    "KXHIGHAUS": {"city": "Austin (Camp Mabry)", "lat": 30.321, "lon": -97.760, "tz": "America/Chicago"},
-    "KXHIGHDEN": {"city": "Denver (Intl Airport)", "lat": 39.847, "lon": -104.656, "tz": "America/Denver"},
-    "KXHIGHLAX": {"city": "Los Angeles (LAX)", "lat": 33.938, "lon": -118.389, "tz": "America/Los_Angeles"},
+# Weather stations these markets settle on. Coordinates are the station's,
+# so Open-Meteo forecasts target the same point the market settles against.
+#
+# NOTE: Austin was previously configured as Camp Mabry, but the contract
+# rules settle on Austin-Bergstrom. Corrected 2026-07-26; the first
+# published six-city results were computed with the wrong Austin station
+# and are superseded (git preserves both).
+CITIES: dict[str, dict] = {
+    "ATL": {"name": "Atlanta", "lat": 33.640, "lon": -84.427, "tz": "America/New_York"},
+    "AUS": {"name": "Austin (Bergstrom)", "lat": 30.194, "lon": -97.670, "tz": "America/Chicago"},
+    "BOS": {"name": "Boston", "lat": 42.363, "lon": -71.006, "tz": "America/New_York"},
+    "CHI": {"name": "Chicago (Midway)", "lat": 41.786, "lon": -87.752, "tz": "America/Chicago"},
+    "DAL": {"name": "Dallas (DFW)", "lat": 32.897, "lon": -97.038, "tz": "America/Chicago"},
+    "DC": {"name": "Washington DC (DCA)", "lat": 38.848, "lon": -77.034, "tz": "America/New_York"},
+    "DEN": {"name": "Denver", "lat": 39.847, "lon": -104.656, "tz": "America/Denver"},
+    "HOU": {"name": "Houston (IAH)", "lat": 29.980, "lon": -95.360, "tz": "America/Chicago"},
+    "LAX": {"name": "Los Angeles (LAX)", "lat": 33.938, "lon": -118.389, "tz": "America/Los_Angeles"},
+    "LV": {"name": "Las Vegas", "lat": 36.080, "lon": -115.152, "tz": "America/Los_Angeles"},
+    "MIA": {"name": "Miami", "lat": 25.788, "lon": -80.317, "tz": "America/New_York"},
+    "MIN": {"name": "Minneapolis", "lat": 44.883, "lon": -93.229, "tz": "America/Chicago"},
+    "NOLA": {"name": "New Orleans", "lat": 29.993, "lon": -90.258, "tz": "America/Chicago"},
+    "NY": {"name": "New York (Central Park)", "lat": 40.783, "lon": -73.967, "tz": "America/New_York"},
+    "OKC": {"name": "Oklahoma City", "lat": 35.389, "lon": -97.601, "tz": "America/Chicago"},
+    "PHIL": {"name": "Philadelphia", "lat": 39.872, "lon": -75.241, "tz": "America/New_York"},
+    "PHX": {"name": "Phoenix", "lat": 33.428, "lon": -112.004, "tz": "America/Phoenix"},
+    "SATX": {"name": "San Antonio", "lat": 29.544, "lon": -98.484, "tz": "America/Chicago"},
+    "SEA": {"name": "Seattle", "lat": 47.444, "lon": -122.314, "tz": "America/Los_Angeles"},
+    "SFO": {"name": "San Francisco", "lat": 37.619, "lon": -122.375, "tz": "America/Los_Angeles"},
 }
+
+# Kalshi series -> (city key, which daily extreme it settles on). High and
+# low markets for the same city share a station and a day but differ ~20x
+# in traded volume, which is the natural experiment the thin-market study
+# is built on.
+_SERIES = {
+    "KXHIGHTATL": ("ATL", "high"), "KXLOWTATL": ("ATL", "low"),
+    "KXHIGHAUS": ("AUS", "high"), "KXLOWTAUS": ("AUS", "low"),
+    "KXHIGHTBOS": ("BOS", "high"), "KXLOWTBOS": ("BOS", "low"),
+    "KXHIGHCHI": ("CHI", "high"), "KXLOWTCHI": ("CHI", "low"),
+    "KXHIGHTDAL": ("DAL", "high"), "KXLOWTDAL": ("DAL", "low"),
+    "KXHIGHTDC": ("DC", "high"), "KXLOWTDC": ("DC", "low"),
+    "KXHIGHDEN": ("DEN", "high"), "KXLOWTDEN": ("DEN", "low"),
+    "KXHIGHTHOU": ("HOU", "high"), "KXLOWTHOU": ("HOU", "low"),
+    "KXHIGHLAX": ("LAX", "high"), "KXLOWTLAX": ("LAX", "low"),
+    "KXHIGHTLV": ("LV", "high"), "KXLOWTLV": ("LV", "low"),
+    "KXHIGHMIA": ("MIA", "high"), "KXLOWTMIA": ("MIA", "low"),
+    "KXHIGHTMIN": ("MIN", "high"), "KXLOWTMIN": ("MIN", "low"),
+    "KXHIGHTNOLA": ("NOLA", "high"), "KXLOWTNOLA": ("NOLA", "low"),
+    "KXHIGHNY": ("NY", "high"), "KXLOWTNYC": ("NY", "low"),
+    "KXHIGHTOKC": ("OKC", "high"), "KXLOWTOKC": ("OKC", "low"),
+    "KXHIGHPHIL": ("PHIL", "high"), "KXLOWTPHIL": ("PHIL", "low"),
+    "KXHIGHTPHX": ("PHX", "high"), "KXLOWTPHX": ("PHX", "low"),
+    "KXHIGHTSATX": ("SATX", "high"), "KXLOWTSATX": ("SATX", "low"),
+    "KXHIGHTSEA": ("SEA", "high"), "KXLOWTSEA": ("SEA", "low"),
+    "KXHIGHTSFO": ("SFO", "high"), "KXLOWTSFO": ("SFO", "low"),
+}
+
+WEATHER_SERIES: dict[str, dict] = {
+    ticker: {
+        "city": f"{CITIES[c]['name']} {kind}",
+        "city_key": c,
+        "kind": kind,
+        "lat": CITIES[c]["lat"],
+        "lon": CITIES[c]["lon"],
+        "tz": CITIES[c]["tz"],
+    }
+    for ticker, (c, kind) in _SERIES.items()
+}
+
+# The six series the original pre-registered study used, kept so the
+# primary result can still be reproduced in isolation.
+PRIMARY_SERIES = ["KXHIGHNY", "KXHIGHCHI", "KXHIGHMIA", "KXHIGHAUS", "KXHIGHDEN", "KXHIGHLAX"]
 
 # Series snapshotted for future studies (not enough settled history yet
 # to backtest; Kalshi's ~2-month public retention means we archive now
