@@ -60,3 +60,23 @@ def test_drop_duplicate_members_keeps_first():
     })
     out = drop_duplicate_members(df)
     assert list(out.columns) == ["gfs_seamless", "icon_seamless"]
+
+
+def test_append_preserves_prior_rows_when_schema_grows(tmp_path):
+    """Issued forecasts are never modified. When the model gains a
+    column, older rows keep their values and carry blanks."""
+    import pandas as pd
+
+    from predictedge.forecast import _append
+
+    path = tmp_path / "weather.csv"
+    first = pd.DataFrame({"ticker": ["A"], "p_model": [0.5]})
+    _append(path, first)
+    second = pd.DataFrame({"ticker": ["B"], "p_model": [0.7], "model": ["v2"]})
+    _append(path, second)
+
+    out = pd.read_csv(path)
+    assert list(out.columns) == ["ticker", "p_model", "model"]
+    assert out.loc[0, "ticker"] == "A" and out.loc[0, "p_model"] == 0.5
+    assert pd.isna(out.loc[0, "model"])
+    assert out.loc[1, "model"] == "v2"
