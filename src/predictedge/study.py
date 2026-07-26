@@ -48,7 +48,7 @@ def per_series(variant: backtest.Variant | None = None) -> pd.DataFrame:
     variant = variant or backtest.WEIGHTED
     markets = backtest._weather_events(ingest.load_markets())
     candles = ingest.load_candles()
-    ev, _ = backtest._score(markets, candles, backtest.PRIMARY, variant)
+    ev, _ = backtest._score(markets, candles, backtest.STUDY, variant)
     ev = ev.dropna(subset=["brier_model", "brier_market"])
     ev = ev[ev["included"] == True]  # noqa: E712
 

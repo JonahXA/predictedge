@@ -35,12 +35,20 @@ from .scoring import brier, logloss
 class Snapshot:
     label: str
     day_offset: int  # snapshot day relative to the event day
-    hour: int  # UTC hour of the snapshot
+    hour: int  # hour of the snapshot (UTC unless `local`)
     lead_days: int  # forecast lead (previous_dayN), strictly pre-snapshot
     error_lag: int  # min days between an error's date and the event
+    local: bool = False  # interpret `hour` in the station's local time
 
 
 PRIMARY = Snapshot("D 09:00Z", 0, 9, 1, 1)
+
+# Snapshot used by the thin-market study. Local midnight puts the whole
+# local day ahead of the decision, which a fixed UTC hour cannot do for
+# both highs and lows across five time zones. error_lag is 2 because at
+# local midnight the previous day's official NWS value has not been
+# published yet.
+STUDY = Snapshot("D 00:00 local", 0, 0, 1, 2, local=True)
 
 
 @dataclass(frozen=True)
@@ -219,7 +227,8 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
 
         if skip is None:
             g = g.sort_values(["floor_strike", "cap_strike"], na_position="first")
-            snap_ts = market.snapshot_ts(ev.date, snap.day_offset, snap.hour)
+            snap_ts = market.snapshot_ts(ev.date, snap.day_offset, snap.hour,
+                                         WEATHER_SERIES[st]["tz"] if snap.local else None)
             quotes = market.snapshot_quotes(
                 candles[candles["ticker"].isin(g["ticker"])], snap_ts
             ).reindex(g["ticker"])

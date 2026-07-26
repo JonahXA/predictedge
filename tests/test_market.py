@@ -40,3 +40,21 @@ def test_snapshot_quotes_takes_last_candle_before_cutoff():
     q = snapshot_quotes(candles, snap_ts=250)
     assert q.loc["A", "end_period_ts"] == 200
     assert q.loc["A", "mid"] == 0.25
+
+
+def test_local_snapshot_precedes_the_whole_local_day():
+    """Daily lows occur pre-dawn, so the study snapshot must sit at local
+    midnight — before any of the local day — in every time zone."""
+    import datetime as dt
+
+    for tz, off in [("America/New_York", 4), ("America/Los_Angeles", 7),
+                    ("America/Chicago", 5), ("America/Denver", 6)]:
+        ts = snapshot_ts(date(2026, 7, 23), 0, 0, tz)
+        utc = dt.datetime.fromtimestamp(ts, dt.timezone.utc)
+        assert utc.hour == off  # local midnight expressed in UTC
+        local = utc.astimezone(dt.timezone(dt.timedelta(hours=-off)))
+        assert (local.hour, local.date()) == (0, date(2026, 7, 23))
+
+
+def test_utc_snapshot_unchanged_without_tz():
+    assert snapshot_ts(date(2026, 7, 23)) % 86400 == 9 * 3600

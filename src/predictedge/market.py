@@ -11,6 +11,7 @@ integrated over the same bins.
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -24,10 +25,19 @@ def event_date(event_ticker: str) -> date:
     return datetime.strptime(tail, "%y%b%d").date()
 
 
-def snapshot_ts(d: date, day_offset: int = 0, hour: int = SNAPSHOT_UTC_HOUR) -> int:
-    """Snapshot instant for an event on day d: `hour` UTC on d+day_offset
-    (day_offset=-1 → the day before the event)."""
-    base = datetime(d.year, d.month, d.day, hour, tzinfo=timezone.utc) + timedelta(days=day_offset)
+def snapshot_ts(d: date, day_offset: int = 0, hour: int = SNAPSHOT_UTC_HOUR,
+                tz: str | None = None) -> int:
+    """Snapshot instant for an event on day d: `hour` on d+day_offset,
+    in UTC by default or in `tz` when given.
+
+    Local-time snapshots exist for the low-temperature markets. A daily
+    low usually occurs just before dawn, so a 09:00 UTC snapshot is
+    already 05:00 in New York — the low may have happened, and the
+    market would partly know the outcome while a day-ahead forecast
+    would not. Taking the snapshot at local midnight puts the entire
+    local day ahead of the decision for highs and lows alike."""
+    zone = ZoneInfo(tz) if tz else timezone.utc
+    base = datetime(d.year, d.month, d.day, hour, tzinfo=zone) + timedelta(days=day_offset)
     return int(base.timestamp())
 
 
