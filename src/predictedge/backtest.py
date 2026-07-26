@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 from . import ingest, market, weather
-from .config import MAX_BIN_SPREAD, REPORTS_DIR, WEATHER_SERIES
+from .config import MAX_BIN_SPREAD, PRIOR_N, REPORTS_DIR, WEATHER_SERIES
 from .models.baseline import ErrorState, bin_probs
 from .scoring import brier, logloss
 
@@ -53,12 +53,14 @@ class Variant:
     name: str
     ensemble: bool = False
     spread_sigma: bool = False
+    weighted: bool = False
 
 
 BASELINE = Variant("baseline (single NWP)")
 ENSEMBLE = Variant("ensemble (6-model mean)", ensemble=True)
 ENSEMBLE_SPREAD = Variant("ensemble + spread-conditional sigma", ensemble=True, spread_sigma=True)
-VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD]
+WEIGHTED = Variant("+ skill-weighted members", ensemble=True, spread_sigma=True, weighted=True)
+VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED]
 
 # Earlier decision times. Day-before snapshots need the 2-day-lead
 # forecast (the 1-day run isn't issued yet) and a 2-day error lag; the
@@ -82,8 +84,10 @@ def _weather_events(markets: pd.DataFrame) -> pd.DataFrame:
 
 def _forecasts(markets: pd.DataFrame, lead_days: int,
                variant: Variant = BASELINE) -> dict[str, pd.DataFrame]:
-    """Per-series frame indexed by date with `mu` (the forecast) and
-    `spread` (inter-model standard deviation, NaN for single-model)."""
+    """Per-series frame indexed by date: one column per ensemble member
+    (or a single column for the baseline). The combination into a point
+    forecast happens per event, because weighted variants need the
+    walk-forward member skill available at that moment."""
     out = {}
     for st, cfg in WEATHER_SERIES.items():
         dates = markets.loc[markets["series_ticker"] == st, "date"]
@@ -91,22 +95,36 @@ def _forecasts(markets: pd.DataFrame, lead_days: int,
             continue
         args = (cfg["lat"], cfg["lon"], cfg["tz"], dates.min(), dates.max())
         if variant.ensemble:
-            members = weather.ensemble_highs(*args, lead_days=lead_days)
-            out[st] = pd.DataFrame({
-                "mu": members.mean(axis=1),
-                "spread": members.std(axis=1, ddof=0),
-                "members": members.notna().sum(axis=1),
-            })
+            out[st] = weather.ensemble_highs(*args, lead_days=lead_days)
         else:
-            s = weather.day_ahead_highs(*args, lead_days=lead_days)
-            out[st] = pd.DataFrame({"mu": s, "spread": np.nan, "members": 1})
+            out[st] = weather.day_ahead_highs(*args, lead_days=lead_days).to_frame("default")
     return out
+
+
+def _member_weights(history: list[np.ndarray], k: int) -> np.ndarray:
+    """Inverse-MSE member weights from past per-member errors, shrunk
+    toward equal weighting by PRIOR_N pseudo-observations. Equal weights
+    until there is any history."""
+    equal = np.full(k, 1.0 / k)
+    if not history:
+        return equal
+    errs = np.vstack(history)
+    n = len(errs)
+    with np.errstate(invalid="ignore"):
+        mse = np.nanmean(errs**2, axis=0)
+    if not np.isfinite(mse).all() or (mse <= 0).any():
+        return equal
+    inv = 1.0 / mse
+    fitted = inv / inv.sum()
+    w = (n * fitted + PRIOR_N * equal) / (n + PRIOR_N)
+    return w / w.sum()
 
 
 def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
            variant: Variant = BASELINE) -> tuple[pd.DataFrame, pd.DataFrame]:
     forecasts = _forecasts(markets, snap.lead_days, variant)
     history: dict[str, list[tuple]] = {st: [] for st in WEATHER_SERIES}
+    member_history: dict[str, list[tuple]] = {st: [] for st in WEATHER_SERIES}
     rows, bin_rows = [], []
     ordered = markets[["event_ticker", "date", "series_ticker"]].drop_duplicates().sort_values(["date", "event_ticker"])
 
@@ -118,7 +136,19 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
         official = g["expiration_value"].dropna()
         fdf = forecasts.get(st)
         row_fc = fdf.loc[ev.date] if fdf is not None and ev.date in fdf.index else None
-        fc = None if row_fc is None else row_fc["mu"]
+        if row_fc is None:
+            members = None
+            fc = spread = None
+        else:
+            members = row_fc.to_numpy(float)
+            if variant.weighted:
+                usable_m = [e for d, e in member_history[st] if (ev.date - d).days >= snap.error_lag]
+                w = _member_weights(usable_m, len(members))
+                ok = np.isfinite(members)
+                fc = float((w[ok] * members[ok]).sum() / w[ok].sum()) if ok.any() else None
+            else:
+                fc = float(np.nanmean(members)) if np.isfinite(members).any() else None
+            spread = float(np.nanstd(members)) if len(members) > 1 else float("nan")
         if len(outcome) != 1:
             skip = "no_unique_outcome"
         elif len(official) == 0:
@@ -135,7 +165,6 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
             usable = [(e, sp) for d, e, sp in history[st] if (ev.date - d).days >= snap.error_lag]
             state = ErrorState([e for e, _ in usable], [sp for _, sp in usable])
             mu = fc + state.bias
-            spread = row_fc["spread"]
             sigma = state.sigma_for(spread) if variant.spread_sigma else state.sigma
             bins = list(zip(g["strike_type"], g["floor_strike"], g["cap_strike"]))
             p_model = bin_probs(mu, sigma, bins)
@@ -149,7 +178,7 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
                 "city": WEATHER_SERIES[st]["city"], "date": ev.date,
                 "n_bins": len(g), "official_high": float(official.iloc[0]),
                 "forecast_high": float(fc), "mu": float(mu), "sigma": float(sigma),
-                "spread": float(row_fc["spread"]) if pd.notna(row_fc["spread"]) else None,
+                "spread": float(spread) if spread is not None and pd.notna(spread) else None,
                 "n_errors": len(usable),
                 "brier_model": brier(p_model, outcome_idx),
                 "logloss_model": logloss(p_model, outcome_idx),
@@ -172,8 +201,10 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
                     "spread": spreads[i], "result": t.result,
                 })
             # Observed only after the event; gated on read by error_lag.
-            history[st].append((ev.date, float(official.iloc[0]) - float(fc),
+            truth = float(official.iloc[0])
+            history[st].append((ev.date, truth - float(fc),
                                float(spread) if pd.notna(spread) else float("nan")))
+            member_history[st].append((ev.date, truth - members))
         else:
             rows.append({"event_ticker": ev.event_ticker, "series": st, "date": ev.date, "skip": skip})
 
