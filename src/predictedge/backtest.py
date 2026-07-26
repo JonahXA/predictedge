@@ -47,13 +47,18 @@ PRIMARY = Snapshot("D 09:00Z", 0, 9, 1, 1)
 class Variant:
     """A model configuration. `ensemble` averages several NWP systems at
     the same lead instead of using Open-Meteo's default (which tracks
-    GFS) — identical information timing, better central estimate."""
+    GFS) — identical information timing, better central estimate.
+    `spread_sigma` additionally conditions the predictive width on how
+    much those members disagree that day."""
     name: str
     ensemble: bool = False
+    spread_sigma: bool = False
 
 
 BASELINE = Variant("baseline (single NWP)")
 ENSEMBLE = Variant("ensemble (6-model mean)", ensemble=True)
+ENSEMBLE_SPREAD = Variant("ensemble + spread-conditional sigma", ensemble=True, spread_sigma=True)
+VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD]
 
 # Earlier decision times. Day-before snapshots need the 2-day-lead
 # forecast (the 1-day run isn't issued yet) and a 2-day error lag; the
@@ -127,10 +132,11 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
             quotes = market.snapshot_quotes(
                 candles[candles["ticker"].isin(g["ticker"])], snap_ts
             ).reindex(g["ticker"])
-            usable = [e for d, e in history[st] if (ev.date - d).days >= snap.error_lag]
-            state = ErrorState(usable)
+            usable = [(e, sp) for d, e, sp in history[st] if (ev.date - d).days >= snap.error_lag]
+            state = ErrorState([e for e, _ in usable], [sp for _, sp in usable])
             mu = fc + state.bias
-            sigma = state.sigma
+            spread = row_fc["spread"]
+            sigma = state.sigma_for(spread) if variant.spread_sigma else state.sigma
             bins = list(zip(g["strike_type"], g["floor_strike"], g["cap_strike"]))
             p_model = bin_probs(mu, sigma, bins)
             mids = quotes["mid"].to_numpy()
@@ -166,7 +172,8 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
                     "spread": spreads[i], "result": t.result,
                 })
             # Observed only after the event; gated on read by error_lag.
-            history[st].append((ev.date, float(official.iloc[0]) - float(fc)))
+            history[st].append((ev.date, float(official.iloc[0]) - float(fc),
+                               float(spread) if pd.notna(spread) else float("nan")))
         else:
             rows.append({"event_ticker": ev.event_ticker, "series": st, "date": ev.date, "skip": skip})
 
@@ -238,7 +245,7 @@ def compare() -> pd.DataFrame:
     markets = _weather_events(ingest.load_markets())
     candles = ingest.load_candles()
     scored: dict[str, pd.DataFrame] = {}
-    for variant in (BASELINE, ENSEMBLE):
+    for variant in VARIANTS:
         ev, _ = _score(markets, candles, PRIMARY, variant)
         g = ev.dropna(subset=["brier_model", "brier_market"])
         scored[variant.name] = g[g["included"] == True].set_index("event_ticker")  # noqa: E712
@@ -261,12 +268,14 @@ def compare() -> pd.DataFrame:
         for name, g in scored.items():
             d = (g[f"{metric}_model"] - g[f"{metric}_market"]).to_numpy(float)
             rows.append(_test(d, g["date"].to_numpy(), f"{name} vs market", metric, len(d)))
-        # Variant vs variant, aligned on the shared events.
-        a, b = scored[ENSEMBLE.name], scored[BASELINE.name]
-        common = a.index.intersection(b.index)
-        d = (a.loc[common, f"{metric}_model"] - b.loc[common, f"{metric}_model"]).to_numpy(float)
-        rows.append(_test(d, a.loc[common, "date"].to_numpy(),
-                          f"{ENSEMBLE.name} vs {BASELINE.name}", metric, len(common)))
+        # Each variant against the one before it, aligned on shared events,
+        # so every row isolates a single change.
+        for prev, cur in zip(VARIANTS, VARIANTS[1:]):
+            a, b = scored[cur.name], scored[prev.name]
+            common = a.index.intersection(b.index)
+            d = (a.loc[common, f"{metric}_model"] - b.loc[common, f"{metric}_model"]).to_numpy(float)
+            rows.append(_test(d, a.loc[common, "date"].to_numpy(),
+                              f"{cur.name} vs {prev.name}", metric, len(common)))
 
     summary = pd.DataFrame([
         {"variant": name, "events": len(g),

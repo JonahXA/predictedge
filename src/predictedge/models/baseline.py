@@ -25,18 +25,29 @@ import math
 import numpy as np
 from scipy import stats
 
-from ..config import PRIOR_N, PRIOR_SIGMA_F
+from ..config import (
+    MAX_SIGMA_F,
+    MAX_SPREAD_SLOPE,
+    MIN_N_SPREAD_FIT,
+    MIN_SIGMA_F,
+    PRIOR_N,
+    PRIOR_SIGMA_F,
+)
 
 
 class ErrorState:
     """Walk-forward accumulator of (official_high - forecast) errors for
-    one city. Pure function of the errors added so far."""
+    one city, optionally paired with that day's inter-model spread.
+    Pure function of the observations added so far."""
 
-    def __init__(self, errors: list[float] | None = None) -> None:
+    def __init__(self, errors: list[float] | None = None,
+                 spreads: list[float] | None = None) -> None:
         self.errors: list[float] = list(errors) if errors else []
+        self.spreads: list[float] = list(spreads) if spreads else []
 
-    def add(self, error: float) -> None:
+    def add(self, error: float, spread: float | None = None) -> None:
         self.errors.append(error)
+        self.spreads.append(float("nan") if spread is None else spread)
 
     @property
     def bias(self) -> float:
@@ -48,6 +59,35 @@ class ErrorState:
         b = self.bias
         ss = sum((e - b) ** 2 for e in self.errors)
         return math.sqrt((PRIOR_N * PRIOR_SIGMA_F**2 + ss) / (PRIOR_N + len(self.errors)))
+
+    def sigma_for(self, spread: float | None) -> float:
+        """Sigma conditioned on today's inter-model disagreement.
+
+        Regresses past squared errors on past squared spreads
+        (var = a + b*spread^2, both coefficients constrained non-negative)
+        and shrinks the fitted variance toward the unconditional variance
+        by PRIOR_N pseudo-observations. Falls back to the unconditional
+        sigma when there is no spread or too little history to fit."""
+        base = self.sigma
+        if spread is None or not math.isfinite(spread):
+            return base
+        pairs = [(e, s) for e, s in zip(self.errors, self.spreads) if math.isfinite(s)]
+        if len(pairs) < MIN_N_SPREAD_FIT:
+            return base
+
+        b0 = self.bias
+        x = np.array([s**2 for _, s in pairs])
+        y = np.array([(e - b0) ** 2 for e, _ in pairs])
+        xm, ym = x.mean(), y.mean()
+        denom = float(((x - xm) ** 2).sum())
+        slope = float(((x - xm) * (y - ym)).sum() / denom) if denom > 0 else 0.0
+        slope = min(max(slope, 0.0), MAX_SPREAD_SLOPE)
+        intercept = max(ym - slope * xm, MIN_SIGMA_F**2)
+
+        fitted = intercept + slope * spread**2
+        n = len(pairs)
+        var = (n * fitted + PRIOR_N * base**2) / (n + PRIOR_N)
+        return math.sqrt(min(max(var, MIN_SIGMA_F**2), MAX_SIGMA_F**2))
 
 
 def bin_prob(mu: float, sigma: float, strike_type: str, floor: float, cap: float) -> float:

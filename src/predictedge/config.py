@@ -50,6 +50,15 @@ FORECAST_LEAD_DAYS = 1
 PRIOR_SIGMA_F = 3.0  # deg F, typical day-ahead high-temp forecast RMSE
 PRIOR_N = 10
 
+# Spread-conditional sigma: days where the NWP members disagree deserve
+# wider predictive distributions. The variance model var = a + b*spread^2
+# is fit walk-forward, so these bounds keep an early or degenerate fit
+# from producing absurd distributions.
+MIN_N_SPREAD_FIT = 15  # observations before the spread fit is trusted at all
+MIN_SIGMA_F = 1.0
+MAX_SIGMA_F = 8.0
+MAX_SPREAD_SLOPE = 4.0
+
 # Primary analysis includes an event only if every bin has a two-sided
 # quote at the snapshot with spread <= this. Reported sensitivity: all.
 MAX_BIN_SPREAD = 0.15

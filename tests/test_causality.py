@@ -36,3 +36,43 @@ def test_first_event_uses_pure_prior():
     state = ErrorState()
     assert state.bias == 0.0
     assert state.sigma == PRIOR_SIGMA_F
+
+
+def _spread_params(obs: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """Same replay, for the spread-conditional variant: record the
+    (bias, sigma) actually used on each day, where sigma is conditioned
+    on that day's spread but fit only on prior days."""
+    state = ErrorState()
+    out = []
+    for err, spread in obs:
+        out.append((state.bias, state.sigma_for(spread)))
+        state.add(err, spread)
+    return out
+
+
+def test_spread_conditional_sigma_is_also_walk_forward():
+    rng = np.random.default_rng(11)
+    spreads = np.abs(rng.normal(2.0, 0.8, size=80))
+    errors = rng.normal(0.3, 1.0, size=80) * spreads  # error scales with disagreement
+    obs = list(zip(errors, spreads))
+    short = _spread_params(obs[:40])
+    long = _spread_params(obs)
+    assert short == long[:40]
+
+
+def test_wider_spread_gives_wider_sigma_once_fit():
+    """With a history where error scales with disagreement, a
+    high-spread day must get a wider distribution than a low-spread one."""
+    rng = np.random.default_rng(12)
+    spreads = np.abs(rng.normal(2.0, 0.8, size=60))
+    errors = rng.normal(0, 1.0, size=60) * spreads
+    state = ErrorState(list(errors), list(spreads))
+    assert state.sigma_for(4.0) > state.sigma_for(0.5)
+
+
+def test_sigma_for_falls_back_without_spread():
+    state = ErrorState([1.0, -2.0, 0.5], [float("nan")] * 3)
+    assert state.sigma_for(None) == state.sigma
+    assert state.sigma_for(float("nan")) == state.sigma
+    # Too little history to fit → unconditional sigma.
+    assert state.sigma_for(3.0) == state.sigma
