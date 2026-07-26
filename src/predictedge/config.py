@@ -94,7 +94,24 @@ PRIMARY_SERIES = ["KXHIGHNY", "KXHIGHCHI", "KXHIGHMIA", "KXHIGHAUS", "KXHIGHDEN"
 # Series snapshotted for future studies (not enough settled history yet
 # to backtest; Kalshi's ~2-month public retention means we archive now
 # and analyze later).
-FORWARD_SERIES = ["KXCPIYOY", "KXCPI", "KXPAYROLLS", "KXFED"]
+FORWARD_SERIES = [
+    # Monthly economic releases. Structurally the most attractive target
+    # we have found — resolution comes from a scheduled BLS/BEA
+    # publication, so the fresher-model-run disadvantage that cost us
+    # ~40% of the weather gap does not exist. But monthly cadence means
+    # ~12 events a year, and the visible history is a handful of events.
+    "KXCPIYOY", "KXCPI", "KXPAYROLLS", "KXFED",
+    # Higher-frequency series, archived purely to build statistical power
+    # for a study that is not yet runnable. Event counts as of 2026-07-26
+    # are in comments; weather reached p<0.0001 on 2,725 events, so none
+    # of these are testable today. A daily series accrues ~1 event/day,
+    # so this list becomes usable in roughly 6-12 months.
+    "KXAAAGASD",        # 58 events - US retail gas price, strongly autocorrelated
+    "KXJOBLESSCLAIMS",  # 10 - weekly initial claims
+    "KXTSAW",           # 9  - weekly TSA throughput, strong weekly/seasonal shape
+    "KXUSFLYCAN",       # 10 - weekly flight cancellations, weather-driven
+    "KXINX", "KXNASDAQ100",  # 34 each - daily index ranges
+]
 
 # Decision time: 09:00 UTC on the event's local calendar day (05:00 New
 # York, 02:00 Los Angeles) — before the day's high develops anywhere in
