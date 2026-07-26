@@ -41,16 +41,27 @@ def _volume_per_market() -> pd.Series:
     return (v["vol"] / v["n"]).rename("vol_per_market")
 
 
-def per_series(variant: backtest.Variant | None = None) -> pd.DataFrame:
+def per_series(variant: backtest.Variant | None = None,
+               tight_only: bool = False) -> pd.DataFrame:
     """Score every series once, then summarise the model-market gap for
     each. `_score` keeps its walk-forward state per series, so a single
-    pass is equivalent to running each series independently."""
+    pass is equivalent to running each series independently.
+
+    Selection warning: the headline backtest keeps only events where every
+    bin is quoted inside MAX_BIN_SPREAD. Thin markets quote wider, so that
+    filter preferentially discards the very series this study is about and
+    would attenuate the effect being measured. The study therefore reports
+    **all quoted events** by default and carries `tight_rate` per series so
+    the selection pressure stays visible; `tight_only=True` reruns the
+    restricted sample as a sensitivity check."""
     variant = variant or backtest.WEIGHTED
     markets = backtest._weather_events(ingest.load_markets())
     candles = ingest.load_candles()
     ev, _ = backtest._score(markets, candles, backtest.STUDY, variant)
     ev = ev.dropna(subset=["brier_model", "brier_market"])
-    ev = ev[ev["included"] == True]  # noqa: E712
+    tight_rate = ev.groupby("series")["included"].mean()
+    if tight_only:
+        ev = ev[ev["included"] == True]  # noqa: E712
 
     vpm = _volume_per_market()
     rows = []
@@ -64,6 +75,8 @@ def per_series(variant: backtest.Variant | None = None) -> pd.DataFrame:
             "series": st, "city": cfg["city_key"], "kind": cfg["kind"],
             "events": len(d),
             "vol_per_market": float(vpm.get(st, np.nan)),
+            "tight_rate": float(tight_rate.get(st, np.nan)),
+            "mean_spread": float(g["max_spread"].mean()),
             "brier_model": g["brier_model"].mean(),
             "brier_market": g["brier_market"].mean(),
             "d_brier": float(d.mean()),
@@ -87,11 +100,20 @@ def _regression(x: np.ndarray, y: np.ndarray) -> dict:
 
 def run() -> pd.DataFrame:
     df = per_series()
-    print(df[["series", "kind", "events", "vol_per_market", "brier_model",
-              "brier_market", "d_brier", "forecast_mae"]]
+    print(df[["series", "kind", "events", "vol_per_market", "tight_rate", "mean_spread",
+              "brier_model", "brier_market", "d_brier", "forecast_mae"]]
           .round(4).to_string(index=False))
 
     findings = []
+
+    # 0. Confirm the selection pressure the study is designed around:
+    #    do thinner markets quote wider?
+    ok0 = df["vol_per_market"].notna() & (df["vol_per_market"] > 0)
+    findings.append({
+        "test": "mean_spread ~ log10(volume per market)",
+        **_regression(np.log10(df.loc[ok0, "vol_per_market"].to_numpy(float)),
+                      df.loc[ok0, "mean_spread"].to_numpy(float)),
+    })
 
     # 1. Does the gap grow with traded volume?
     ok = df["vol_per_market"].notna() & (df["vol_per_market"] > 0)
@@ -118,6 +140,16 @@ def run() -> pd.DataFrame:
             "n": int(len(diff)), "mean_diff": float(diff.mean()),
             "p": float(t.pvalue), "slope": np.nan, "intercept": np.nan,
             "r": np.nan, "stderr": float(diff.std(ddof=1) / np.sqrt(len(diff))),
+        })
+
+    # 3. Sensitivity: the tight-spread sample the headline backtest uses.
+    tight = per_series(tight_only=True)
+    ok_t = tight["vol_per_market"].notna() & (tight["vol_per_market"] > 0)
+    if ok_t.sum() >= 5:
+        findings.append({
+            "test": "SENSITIVITY d_brier ~ log10(volume), tight-spread events only",
+            **_regression(np.log10(tight.loc[ok_t, "vol_per_market"].to_numpy(float)),
+                          tight.loc[ok_t, "d_brier"].to_numpy(float)),
         })
 
     out = pd.DataFrame(findings)
