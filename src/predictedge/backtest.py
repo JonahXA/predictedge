@@ -54,13 +54,16 @@ class Variant:
     ensemble: bool = False
     spread_sigma: bool = False
     weighted: bool = False
+    empirical_shape: bool = False
 
 
 BASELINE = Variant("baseline (single NWP)")
 ENSEMBLE = Variant("ensemble (6-model mean)", ensemble=True)
 ENSEMBLE_SPREAD = Variant("ensemble + spread-conditional sigma", ensemble=True, spread_sigma=True)
 WEIGHTED = Variant("+ skill-weighted members", ensemble=True, spread_sigma=True, weighted=True)
-VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED]
+EMPIRICAL = Variant("+ empirical residual shape", ensemble=True, spread_sigma=True,
+                    weighted=True, empirical_shape=True)
+VARIANTS = [BASELINE, ENSEMBLE, ENSEMBLE_SPREAD, WEIGHTED, EMPIRICAL]
 
 # Earlier decision times. Day-before snapshots need the 2-day-lead
 # forecast (the 1-day run isn't issued yet) and a 2-day error lag; the
@@ -167,7 +170,8 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
             mu = fc + state.bias
             sigma = state.sigma_for(spread) if variant.spread_sigma else state.sigma
             bins = list(zip(g["strike_type"], g["floor_strike"], g["cap_strike"]))
-            p_model = bin_probs(mu, sigma, bins)
+            cdf = state.residual_cdf(variant.spread_sigma) if variant.empirical_shape else None
+            p_model = bin_probs(mu, sigma, bins, cdf)
             mids = quotes["mid"].to_numpy()
             spreads = quotes["spread"].to_numpy()
             outcome_idx = int((g["result"] == "yes").to_numpy().argmax())

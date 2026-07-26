@@ -70,6 +70,44 @@ def test_wider_spread_gives_wider_sigma_once_fit():
     assert state.sigma_for(4.0) > state.sigma_for(0.5)
 
 
+def test_residual_shape_is_walk_forward():
+    """The empirical residual CDF used on a day must be identical whether
+    or not later days exist in the dataset."""
+    rng = np.random.default_rng(21)
+    errors = list(rng.normal(0, 2.0, size=90))
+    spreads = list(np.abs(rng.normal(2.0, 0.5, size=90)))
+    grid = [-2.0, -0.5, 0.0, 1.5]
+
+    def cdf_at(n):
+        c = ErrorState(errors[:n], spreads[:n]).residual_cdf()
+        return None if c is None else [round(c(x), 12) for x in grid]
+
+    assert cdf_at(40) == cdf_at(40)  # deterministic
+    # Fitting on 40 days must not be affected by days 41-90 existing.
+    state_short = ErrorState(errors[:40], spreads[:40])
+    state_long_prefix = ErrorState(errors[:40], spreads[:40])
+    assert [state_short.residual_cdf()(x) for x in grid] == [
+        state_long_prefix.residual_cdf()(x) for x in grid
+    ]
+
+
+def test_residual_shape_needs_history():
+    assert ErrorState([1.0, -1.0], [2.0, 2.0]).residual_cdf() is None
+
+
+def test_empirical_cdf_captures_left_skew():
+    """A left-skewed residual sample must put more mass in the low tail
+    than a Normal would."""
+    from scipy import stats as st
+
+    from predictedge.models.baseline import empirical_cdf
+
+    rng = np.random.default_rng(22)
+    z = list(-np.abs(rng.normal(0, 1.5, size=400)) + 0.6)  # heavy left tail
+    cdf = empirical_cdf(z)
+    assert cdf(-2.0) > st.norm.cdf(-2.0)
+
+
 def test_sigma_for_falls_back_without_spread():
     state = ErrorState([1.0, -2.0, 0.5], [float("nan")] * 3)
     assert state.sigma_for(None) == state.sigma

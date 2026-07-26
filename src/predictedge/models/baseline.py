@@ -28,6 +28,7 @@ from scipy import stats
 from ..config import (
     MAX_SIGMA_F,
     MAX_SPREAD_SLOPE,
+    MIN_N_SHAPE_FIT,
     MIN_N_SPREAD_FIT,
     MIN_SIGMA_F,
     PRIOR_N,
@@ -89,11 +90,48 @@ class ErrorState:
         var = (n * fitted + PRIOR_N * base**2) / (n + PRIOR_N)
         return math.sqrt(min(max(var, MIN_SIGMA_F**2), MAX_SIGMA_F**2))
 
+    def residual_cdf(self, spread_sigma: bool = False):
+        """Standardized-residual CDF from history, or None when there is
+        too little history to estimate a shape (caller falls back to the
+        Normal). Each past error is standardized by the sigma that would
+        have been used on that day, so the shape is scale-free."""
+        if len(self.errors) < MIN_N_SHAPE_FIT:
+            return None
+        b = self.bias
+        z = []
+        for i, e in enumerate(self.errors):
+            past = ErrorState(self.errors[:i], self.spreads[:i])
+            s = past.sigma_for(self.spreads[i]) if spread_sigma else past.sigma
+            if s > 0:
+                z.append((e - b) / s)
+        return empirical_cdf(z) if len(z) >= MIN_N_SHAPE_FIT else None
 
-def bin_prob(mu: float, sigma: float, strike_type: str, floor: float, cap: float) -> float:
-    """P(bin) under Normal(mu, sigma), continuity-corrected for
-    integer-degree settlement."""
-    z = lambda x: stats.norm.cdf((x - mu) / sigma)
+
+def empirical_cdf(standardized: list[float], smoothing: float = 0.6):
+    """Smoothed CDF of past standardized residuals.
+
+    Forecast errors here are left-skewed and fat-tailed (a day can bust
+    cold far more dramatically than it busts warm), which a Normal cannot
+    represent. This is a Gaussian kernel density estimate over the
+    observed standardized residuals, so skew and kurtosis are carried
+    directly from history instead of assumed away."""
+    z = np.asarray([v for v in standardized if math.isfinite(v)], dtype=float)
+
+    def cdf(x: float) -> float:
+        return float(stats.norm.cdf((x - z) / smoothing).mean())
+
+    return cdf
+
+
+def bin_prob(mu: float, sigma: float, strike_type: str, floor: float, cap: float,
+             cdf=None) -> float:
+    """P(bin) under the predictive distribution, continuity-corrected for
+    integer-degree settlement. Defaults to Normal(mu, sigma); pass `cdf`
+    for a standardized non-Gaussian residual distribution."""
+    if cdf is None:
+        z = lambda x: stats.norm.cdf((x - mu) / sigma)
+    else:
+        z = lambda x: cdf((x - mu) / sigma)
     if strike_type == "greater":  # yes iff value > floor, i.e. >= floor+1
         return 1 - z(floor + 0.5)
     if strike_type == "less":  # yes iff value < cap, i.e. <= cap-1
@@ -103,9 +141,10 @@ def bin_prob(mu: float, sigma: float, strike_type: str, floor: float, cap: float
     raise ValueError(f"unknown strike_type {strike_type}")
 
 
-def bin_probs(mu: float, sigma: float, bins: list[tuple[str, float, float]]) -> np.ndarray:
+def bin_probs(mu: float, sigma: float, bins: list[tuple[str, float, float]],
+              cdf=None) -> np.ndarray:
     """Probability vector over an event's bins, renormalized (the bins
     partition the line, so the sum is ~1 before rounding)."""
-    p = np.array([bin_prob(mu, sigma, st, fl, cp) for st, fl, cp in bins])
+    p = np.array([bin_prob(mu, sigma, st, fl, cp, cdf) for st, fl, cp in bins])
     p = np.clip(p, 1e-9, None)
     return p / p.sum()
