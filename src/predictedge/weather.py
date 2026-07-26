@@ -32,6 +32,15 @@ ENSEMBLE_MODELS = [
     "gem_seamless",
     "jma_seamless",
     "meteofrance_seamless",
+    # Added after probing: these return genuinely distinct series for US
+    # points. Many other ids are aliases that silently duplicate a member
+    # (gfs_hrrr and ncep_hrrr_conus return gfs_seamless; arpege_world
+    # returns meteofrance; dmi/metno return knmi), which would double-
+    # weight that model — `ensemble_highs` drops duplicates defensively.
+    "ukmo_seamless",
+    "ecmwf_aifs025_single",
+    "cma_grapes_global",
+    "knmi_seamless",
 ]
 
 # NOTE: there is no lead-0 variable. Requesting
@@ -86,4 +95,18 @@ def ensemble_highs(lat: float, lon: float, tz: str, start: date, end: date,
             continue  # a member missing for this window is dropped, not fatal
     if not cols:
         raise RuntimeError(f"no ensemble members available for ({lat},{lon}) {start}..{end}")
-    return pd.DataFrame(cols)
+    return drop_duplicate_members(pd.DataFrame(cols))
+
+
+def drop_duplicate_members(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop members whose series is identical to an earlier one.
+
+    Several Open-Meteo model ids are aliases of the same underlying run.
+    Keeping both would silently give that model double weight in the
+    mean and understate the inter-model spread, so the first name wins
+    and the rest are dropped."""
+    keep: list[str] = []
+    for col in df.columns:
+        if not any(df[col].equals(df[k]) for k in keep):
+            keep.append(col)
+    return df[keep]

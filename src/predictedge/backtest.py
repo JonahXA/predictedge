@@ -62,7 +62,7 @@ class Variant:
 
 
 BASELINE = Variant("baseline (single NWP)")
-ENSEMBLE = Variant("ensemble (6-model mean)", ensemble=True, parent=BASELINE.name)
+ENSEMBLE = Variant("ensemble (multi-model mean)", ensemble=True, parent=BASELINE.name)
 ENSEMBLE_SPREAD = Variant("ensemble + spread-conditional sigma", ensemble=True,
                           spread_sigma=True, parent=ENSEMBLE.name)
 WEIGHTED = Variant("+ skill-weighted members", ensemble=True, spread_sigma=True,

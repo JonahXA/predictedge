@@ -75,18 +75,18 @@ Same design swept across earlier decision times (`predictedge sweep`). Day-befor
 
 Two findings. First, there is **no soft window**: two hours after these markets open, with thin books, they already beat the public-NWP baseline decisively. Second, the market's Brier improves monotonically as the event approaches (0.647 → 0.581) while the baseline's stays flat — the widening gap is a direct measurement of information flowing into the price over the ~17 hours before the event day starts. Whatever traders are using (fresher model runs, human synthesis), they price it in early and keep accruing it.
 
-## Third result: 39% of the "market edge" was our own weak input
+## Third result: over half the "market edge" was our own weak input
 
 The obvious confound in the first two results: was the market genuinely smarter, or was our forecast just under-powered? Open-Meteo's default `best_match` turns out to track **GFS exactly** — the baseline was one model, not a considered choice. Averaging six independent NWP systems (`ecmwf_ifs025`, `gfs`, `icon`, `gem`, `jma`, `meteofrance`), **all drawn from the same `previous_day1` archive**, changes the estimate without changing the information timing by a single minute.
 
 | variant | forecast MAE | Brier | log loss | ΔBrier vs market |
 |---|---|---|---|---|
 | baseline (single NWP) | 2.33°F | 0.767 | 1.597 | +0.183 |
-| ensemble (6-model mean) | **1.91°F** | **0.696** | **1.361** | **+0.112** |
+| best model (see ladder) | **1.68°F** | **0.664** | **1.252** | **+0.079** |
 
-The ensemble improvement is real and significant: ΔBrier **−0.071** (95% CI [−0.099, −0.042], DM −4.66, p < 0.0001), Δlog loss −0.235. It closes **39% of the Brier gap** and 45% of the log-loss gap — with zero new information, purely by not being sloppy about the estimator.
+The ensemble improvement alone is ΔBrier **−0.082** (95% CI [−0.112, −0.051], DM −5.15, p < 0.0001). With the rest of the ladder the model closes **57% of the Brier gap** — with zero new information, purely by not being sloppy about the estimator.
 
-**But the market still wins decisively**: +0.112 Brier (CI [+0.088, +0.136], DM 7.86, p < 0.0001). So the honest conclusion splits in two — a large share of what looked like trader skill was our own measurement weakness, and a large, unambiguous remainder is not.
+**But the market still wins decisively**: +0.079 Brier (CI [+0.056, +0.104], DM 4.82, p < 0.0001). So the honest conclusion splits in two — most of what looked like trader skill was our own measurement weakness, and a significant remainder is not.
 
 This is why the confound mattered. Reporting result #1 as "the market is smart" would have been partly wrong.
 
@@ -99,13 +99,15 @@ Each variant differs from its parent by exactly one change, and is scored on ide
 | variant | MAE | Brier | log loss | vs parent (Brier) | significant? |
 |---|---|---|---|---|---|
 | baseline (single NWP) | 2.33°F | 0.7674 | 1.5966 | — | — |
-| ensemble (6-model mean) | 1.91°F | 0.6964 | 1.3614 | −0.0709, p < 0.0001 | ✅ |
-| + spread-conditional σ | 1.91°F | 0.6882 | 1.3377 | −0.0083, p = 0.003 | ✅ |
-| + skill-weighted members | **1.72°F** | **0.6787** | **1.3086** | −0.0095, p = 0.031 | ✅ |
-| + empirical residual shape | 1.72°F | 0.6782 | 1.3005 | −0.0005, p = 0.78 | ❌ |
-| + pooled member skill | 1.76°F | 0.6774 | 1.3091 | −0.0012, p = 0.71 | ❌ |
+| ensemble (10-model mean) | 1.88°F | 0.6858 | 1.3247 | −0.0815, p < 0.0001 | ✅ |
+| + spread-conditional σ | 1.88°F | 0.6743 | 1.2852 | −0.0115, p < 0.0001 | ✅ |
+| + skill-weighted members | **1.68°F** | **0.6639** | **1.2515** | −0.0104, p = 0.022 | ✅ |
+| + empirical residual shape | 1.68°F | 0.6648 | 1.2528 | +0.0009, p = 0.72 | ❌ |
+| + pooled member skill | 1.76°F | 0.6679 | 1.2683 | +0.0040, p = 0.19 | ❌ |
 
-**What worked.** Averaging six NWP systems; widening σ on days the members disagree (fit walk-forward as var = a + b·spread²); weighting members by inverse walk-forward MSE (skill is very uneven — ICON RMSE 2.52 vs ECMWF 4.32).
+**What worked.** Averaging ten NWP systems (ECMWF-IFS, GFS, ICON, GEM, JMA, Météo-France, UKMO, ECMWF-AIFS, CMA, KNMI); widening σ on days the members disagree (fit walk-forward as var = a + b·spread²); weighting members by inverse walk-forward MSE (skill is very uneven — ICON RMSE 2.52 vs ECMWF 4.32).
+
+A trap worth naming: several Open-Meteo model ids are **aliases that return byte-identical series** (`gfs_hrrr` and `ncep_hrrr_conus` both return `gfs_seamless`; `arpege_world` returns Météo-France; `dmi`/`metno` return KNMI). Adding them naively would silently double-weight a model and shrink the apparent ensemble spread, so members are de-duplicated on ingest and a test pins that behavior.
 
 **What didn't, and is reported anyway.** Residuals are *significantly* non-normal (skew −0.71, excess kurtosis 1.41, D'Agostino p = 1.8e-10), so we replaced the Normal with a walk-forward empirical residual CDF — and it changed nothing measurable (p = 0.78). Real misspecification, immaterial consequence. Pooling member skill across cities also did nothing (p = 0.71) and slightly hurt MAE. Both stay in the variant table rather than being quietly dropped.
 
@@ -115,20 +117,20 @@ Re-running the decision-time sweep with the improved model separates the two:
 
 | snapshot | model Brier | market Brier | ΔBrier |
 |---|---|---|---|
-| D−1 16:00Z (open + 2h) | 0.716 | 0.650 | +0.066 |
-| D−1 21:00Z | 0.717 | 0.639 | +0.078 |
-| **D 01:00Z** | 0.682 | 0.629 | **+0.054** |
-| D 05:00Z | 0.682 | 0.604 | +0.078 |
-| D 09:00Z (primary) | 0.679 | 0.584 | +0.094 |
+| D−1 16:00Z (open + 2h) | 0.714 | 0.650 | +0.064 |
+| D−1 21:00Z | 0.714 | 0.639 | +0.075 |
+| **D 01:00Z** | 0.667 | 0.629 | **+0.038** |
+| D 05:00Z | 0.667 | 0.604 | +0.063 |
+| D 09:00Z (primary) | 0.664 | 0.584 | +0.079 |
 
-The model's Brier is **flat at 0.682** from 01:00Z to 09:00Z — it is frozen at the day-ahead forecast — while the market improves 0.629 → 0.584. The gap is narrowest exactly where the information vintages are most comparable, and widens precisely during the hours when 00Z/06Z runs arrive.
+The model's Brier is **flat at 0.667** from 01:00Z to 05:00Z — it is frozen at the day-ahead forecast — while the market improves 0.629 → 0.604 → 0.584. The gap is narrowest exactly where the information vintages are most comparable, and widens precisely during the hours when 00Z/06Z runs arrive.
 
-So the +0.094 primary gap decomposes roughly as:
+So the +0.079 primary gap decomposes roughly as:
 
-- **~0.054 — genuine remaining edge** at comparable information vintage. Real, and we have not closed it.
-- **~0.040 — information access.** Open-Meteo's archive exposes no lead shorter than `previous_day1`; traders at 09:00Z are using runs we cannot retrieve historically. This is a limitation of our data, not evidence about traders.
+- **~0.038 — genuine remaining edge** at comparable information vintage (still significant, p = 0.009). Real, and we have not closed it.
+- **~0.041 — information access.** Open-Meteo's archive exposes no lead shorter than `previous_day1`; traders at 09:00Z are using runs we cannot retrieve historically. This is a limitation of our data, not evidence about traders.
 
-That distinction matters: roughly 43% of what remains isn't a modeling failure at all, it's an archive we don't have.
+That distinction matters: roughly **half of what remains isn't a modeling failure at all**, it's an archive we don't have. Of the original +0.183 baseline gap, 57% was our estimator, ~22% is information access, and ~21% is a genuine edge we have not explained.
 
 ## Dashboard
 

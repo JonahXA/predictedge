@@ -44,3 +44,19 @@ def test_daily_averages_across_cities():
     rows = _daily(events)
     assert rows[0] == {"date": "2026-05-17", "model_brier": 0.7, "market_brier": 0.3, "n": 2}
     assert rows[1]["n"] == 1
+
+
+def test_drop_duplicate_members_keeps_first():
+    """Alias model ids return identical series; keeping both would
+    double-weight that model and understate the ensemble spread."""
+    import pandas as pd
+
+    from predictedge.weather import drop_duplicate_members
+
+    df = pd.DataFrame({
+        "gfs_seamless": [80.0, 81.0],
+        "gfs_hrrr": [80.0, 81.0],  # alias of gfs
+        "icon_seamless": [78.0, 79.0],
+    })
+    out = drop_duplicate_members(df)
+    assert list(out.columns) == ["gfs_seamless", "icon_seamless"]

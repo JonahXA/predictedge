@@ -1,7 +1,7 @@
 variant,events,brier_model,brier_market,logloss_model,logloss_market,forecast_mae
 baseline (single NWP),413,0.7674,0.5845,1.5966,1.0699,2.325
-ensemble (6-model mean),413,0.6964,0.5845,1.3614,1.0699,1.914
-ensemble + spread-conditional sigma,413,0.6882,0.5845,1.3377,1.0699,1.914
-+ skill-weighted members,413,0.6787,0.5845,1.3086,1.0699,1.719
-+ empirical residual shape,413,0.6782,0.5845,1.3005,1.0699,1.719
-+ pooled member skill,413,0.6774,0.5845,1.3091,1.0699,1.762
+ensemble (multi-model mean),413,0.6858,0.5845,1.3247,1.0699,1.883
+ensemble + spread-conditional sigma,413,0.6743,0.5845,1.2852,1.0699,1.883
++ skill-weighted members,413,0.6639,0.5845,1.2515,1.0699,1.682
++ empirical residual shape,413,0.6648,0.5845,1.2528,1.0699,1.682
++ pooled member skill,413,0.6679,0.5845,1.2683,1.0699,1.764
