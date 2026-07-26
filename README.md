@@ -77,6 +77,8 @@ Two findings. First, there is **no soft window**: two hours after these markets 
 
 ## Dashboard
 
+**[jonahxa.github.io/predictedge](https://jonahxa.github.io/predictedge/)**
+
 The public site renders the committed research record — reports and pre-registered forecasts already in git. It never recomputes anything at build time, so what's published is exactly what's in the repo. `predictedge export` writes `dashboard/public/data.json`; `.github/workflows/pages.yml` builds the Next.js static export and deploys it on every push.
 
 ## Reproduce
