@@ -111,17 +111,19 @@ def _forecasts(markets: pd.DataFrame, lead_days: int,
         if not len(dates):
             continue
         args = (cfg["lat"], cfg["lon"], cfg["tz"], dates.min(), dates.max())
+        kind = cfg.get("kind", "high")
         if variant.ensemble:
-            df = weather.ensemble_highs(*args, lead_days=lead_days)
+            df = weather.ensemble_highs(*args, lead_days=lead_days, kind=kind)
             if variant.lagged:
                 # The previous run cycle: individually staler, but partly
                 # independent, and the skill weighting decides its worth.
-                older = weather.ensemble_highs(*args, lead_days=lead_days + 1)
+                older = weather.ensemble_highs(*args, lead_days=lead_days + 1, kind=kind)
                 older.columns = [f"{c}_lag" for c in older.columns]
                 df = df.join(older, how="left")
             out[st] = df
         else:
-            out[st] = weather.day_ahead_highs(*args, lead_days=lead_days).to_frame("default")
+            out[st] = weather.day_ahead_highs(
+                *args, lead_days=lead_days, kind=kind).to_frame("default")
     return out
 
 

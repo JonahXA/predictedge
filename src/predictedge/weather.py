@@ -48,8 +48,14 @@ ENSEMBLE_MODELS = [
 # which is the latest analysis — it would leak the outcome. Never use it.
 
 
+def _extreme(df: pd.DataFrame, kind: str) -> pd.Series:
+    """Daily max or min of the hourly forecast, by local calendar day."""
+    g = df.groupby(df["time"].dt.date)["t"]
+    return g.max() if kind == "high" else g.min()
+
+
 def _fetch_highs(lat: float, lon: float, tz: str, start: date, end: date,
-                 var: str, model: str | None) -> pd.Series:
+                 var: str, model: str | None, kind: str = "high") -> pd.Series:
     params = {
         "latitude": lat, "longitude": lon, "hourly": var,
         "temperature_unit": "fahrenheit", "timezone": tz,
@@ -68,19 +74,21 @@ def _fetch_highs(lat: float, lon: float, tz: str, start: date, end: date,
         df = pd.DataFrame({"time": pd.to_datetime(hours["time"]), "t": hours[var]}).dropna()
         if df.empty:
             continue
-        return df.groupby(df["time"].dt.date)["t"].max()
+        return _extreme(df, kind)
     raise RuntimeError(f"no forecast data for ({lat},{lon}) {start}..{end} var={var} model={model}")
 
 
 def day_ahead_highs(lat: float, lon: float, tz: str, start: date, end: date,
-                    lead_days: int = 1) -> pd.Series:
-    """Day-ahead forecast of the daily high (deg F) for each local
+                    lead_days: int = 1, kind: str = "high") -> pd.Series:
+    """Day-ahead forecast of the daily extreme (deg F) for each local
     calendar day in [start, end], indexed by date."""
-    return _fetch_highs(lat, lon, tz, start, end, f"temperature_2m_previous_day{lead_days}", None)
+    return _fetch_highs(lat, lon, tz, start, end,
+                        f"temperature_2m_previous_day{lead_days}", None, kind)
 
 
 def ensemble_highs(lat: float, lon: float, tz: str, start: date, end: date,
-                   lead_days: int = 1, models: list[str] | None = None) -> pd.DataFrame:
+                   lead_days: int = 1, models: list[str] | None = None,
+                   kind: str = "high") -> pd.DataFrame:
     """One column per NWP model, all at the same lead, indexed by date.
 
     Every member is drawn from the same `previous_dayN` archive, so the
@@ -90,7 +98,7 @@ def ensemble_highs(lat: float, lon: float, tz: str, start: date, end: date,
     cols = {}
     for m in models or ENSEMBLE_MODELS:
         try:
-            cols[m] = _fetch_highs(lat, lon, tz, start, end, var, m)
+            cols[m] = _fetch_highs(lat, lon, tz, start, end, var, m, kind)
         except RuntimeError:
             continue  # a member missing for this window is dropped, not fatal
     if not cols:
