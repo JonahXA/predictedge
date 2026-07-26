@@ -1,7 +1,7 @@
 city,events,brier_model,brier_market,logloss_model,logloss_market
-Austin (Camp Mabry),68,0.7811,0.5901,1.5423,1.097
-Chicago (Midway),68,0.8129,0.6082,1.7596,1.1288
-Denver (Intl Airport),68,0.7613,0.627,1.604,1.1921
-Los Angeles (LAX),68,0.7859,0.5712,1.6052,1.0046
-Miami (Intl Airport),68,0.7211,0.5314,1.416,0.9266
-New York (Central Park),68,0.7277,0.5587,1.5682,1.0403
+Austin (Camp Mabry),69,0.7809,0.5869,1.5401,1.091
+Chicago (Midway),69,0.8135,0.609,1.7598,1.1277
+Denver (Intl Airport),69,0.7608,0.6277,1.6012,1.1898
+Los Angeles (LAX),69,0.7936,0.5799,1.6791,1.0258
+Miami (Intl Airport),69,0.7262,0.5367,1.4288,0.9348
+New York (Central Park),69,0.7289,0.5645,1.5676,1.0463

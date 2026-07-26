@@ -1,0 +1,3 @@
+variant,events,brier_model,brier_market,logloss_model,logloss_market,forecast_mae
+baseline (single NWP),413,0.7674,0.5845,1.5966,1.0699,2.325
+ensemble (6-model mean),413,0.6964,0.5845,1.3614,1.0699,1.914

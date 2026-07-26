@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 from . import ingest, market, weather
@@ -40,6 +41,19 @@ class Snapshot:
 
 
 PRIMARY = Snapshot("D 09:00Z", 0, 9, 1, 1)
+
+
+@dataclass(frozen=True)
+class Variant:
+    """A model configuration. `ensemble` averages several NWP systems at
+    the same lead instead of using Open-Meteo's default (which tracks
+    GFS) — identical information timing, better central estimate."""
+    name: str
+    ensemble: bool = False
+
+
+BASELINE = Variant("baseline (single NWP)")
+ENSEMBLE = Variant("ensemble (6-model mean)", ensemble=True)
 
 # Earlier decision times. Day-before snapshots need the 2-day-lead
 # forecast (the 1-day run isn't issued yet) and a 2-day error lag; the
@@ -61,19 +75,32 @@ def _weather_events(markets: pd.DataFrame) -> pd.DataFrame:
     return m
 
 
-def _forecasts(markets: pd.DataFrame, lead_days: int) -> dict[str, pd.Series]:
+def _forecasts(markets: pd.DataFrame, lead_days: int,
+               variant: Variant = BASELINE) -> dict[str, pd.DataFrame]:
+    """Per-series frame indexed by date with `mu` (the forecast) and
+    `spread` (inter-model standard deviation, NaN for single-model)."""
     out = {}
     for st, cfg in WEATHER_SERIES.items():
         dates = markets.loc[markets["series_ticker"] == st, "date"]
-        if len(dates):
-            out[st] = weather.day_ahead_highs(
-                cfg["lat"], cfg["lon"], cfg["tz"], dates.min(), dates.max(), lead_days=lead_days
-            )
+        if not len(dates):
+            continue
+        args = (cfg["lat"], cfg["lon"], cfg["tz"], dates.min(), dates.max())
+        if variant.ensemble:
+            members = weather.ensemble_highs(*args, lead_days=lead_days)
+            out[st] = pd.DataFrame({
+                "mu": members.mean(axis=1),
+                "spread": members.std(axis=1, ddof=0),
+                "members": members.notna().sum(axis=1),
+            })
+        else:
+            s = weather.day_ahead_highs(*args, lead_days=lead_days)
+            out[st] = pd.DataFrame({"mu": s, "spread": np.nan, "members": 1})
     return out
 
 
-def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot) -> tuple[pd.DataFrame, pd.DataFrame]:
-    forecasts = _forecasts(markets, snap.lead_days)
+def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot,
+           variant: Variant = BASELINE) -> tuple[pd.DataFrame, pd.DataFrame]:
+    forecasts = _forecasts(markets, snap.lead_days, variant)
     history: dict[str, list[tuple]] = {st: [] for st in WEATHER_SERIES}
     rows, bin_rows = [], []
     ordered = markets[["event_ticker", "date", "series_ticker"]].drop_duplicates().sort_values(["date", "event_ticker"])
@@ -84,7 +111,9 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot) -> tupl
         skip = None
         outcome = g[g["result"] == "yes"]
         official = g["expiration_value"].dropna()
-        fc = forecasts.get(st, pd.Series(dtype=float)).get(ev.date)
+        fdf = forecasts.get(st)
+        row_fc = fdf.loc[ev.date] if fdf is not None and ev.date in fdf.index else None
+        fc = None if row_fc is None else row_fc["mu"]
         if len(outcome) != 1:
             skip = "no_unique_outcome"
         elif len(official) == 0:
@@ -114,6 +143,7 @@ def _score(markets: pd.DataFrame, candles: pd.DataFrame, snap: Snapshot) -> tupl
                 "city": WEATHER_SERIES[st]["city"], "date": ev.date,
                 "n_bins": len(g), "official_high": float(official.iloc[0]),
                 "forecast_high": float(fc), "mu": float(mu), "sigma": float(sigma),
+                "spread": float(row_fc["spread"]) if pd.notna(row_fc["spread"]) else None,
                 "n_errors": len(usable),
                 "brier_model": brier(p_model, outcome_idx),
                 "logloss_model": logloss(p_model, outcome_idx),
@@ -192,6 +222,68 @@ def sweep() -> pd.DataFrame:
     out = pd.DataFrame(rows)
     REPORTS_DIR.mkdir(exist_ok=True)
     out.to_csv(REPORTS_DIR / "snapshot_sweep.csv", index=False)
+    print(out.to_string(index=False))
+    return out
+
+
+def compare() -> pd.DataFrame:
+    """Model variants against the market and against each other.
+
+    Both variants are scored on identical events, bins and snapshot, so
+    the variant-vs-variant differential isolates the single change (the
+    forecast input) with no other moving part.
+    """
+    from .significance import cluster_bootstrap, diebold_mariano
+
+    markets = _weather_events(ingest.load_markets())
+    candles = ingest.load_candles()
+    scored: dict[str, pd.DataFrame] = {}
+    for variant in (BASELINE, ENSEMBLE):
+        ev, _ = _score(markets, candles, PRIMARY, variant)
+        g = ev.dropna(subset=["brier_model", "brier_market"])
+        scored[variant.name] = g[g["included"] == True].set_index("event_ticker")  # noqa: E712
+        print(f"{variant.name}: {len(scored[variant.name])} events scored")
+
+    def _test(d: np.ndarray, dates: np.ndarray, label: str, metric: str, n: int) -> dict:
+        lo, hi, p_boot = cluster_bootstrap(d, dates)
+        per_date = pd.DataFrame({"d": d, "date": dates}).groupby("date")["d"].mean().sort_index()
+        dm, p_dm = diebold_mariano(per_date.to_numpy())
+        return {
+            "comparison": label, "metric": metric, "events": n,
+            "mean_diff": round(float(d.mean()), 5),
+            "ci_low": round(lo, 5), "ci_high": round(hi, 5),
+            "p_bootstrap": round(p_boot, 4),
+            "dm_stat": round(dm, 3), "p_dm": round(p_dm, 4),
+        }
+
+    rows = []
+    for metric in ("brier", "logloss"):
+        for name, g in scored.items():
+            d = (g[f"{metric}_model"] - g[f"{metric}_market"]).to_numpy(float)
+            rows.append(_test(d, g["date"].to_numpy(), f"{name} vs market", metric, len(d)))
+        # Variant vs variant, aligned on the shared events.
+        a, b = scored[ENSEMBLE.name], scored[BASELINE.name]
+        common = a.index.intersection(b.index)
+        d = (a.loc[common, f"{metric}_model"] - b.loc[common, f"{metric}_model"]).to_numpy(float)
+        rows.append(_test(d, a.loc[common, "date"].to_numpy(),
+                          f"{ENSEMBLE.name} vs {BASELINE.name}", metric, len(common)))
+
+    summary = pd.DataFrame([
+        {"variant": name, "events": len(g),
+         "brier_model": round(g["brier_model"].mean(), 4),
+         "brier_market": round(g["brier_market"].mean(), 4),
+         "logloss_model": round(g["logloss_model"].mean(), 4),
+         "logloss_market": round(g["logloss_market"].mean(), 4),
+         "forecast_mae": round(float((g["official_high"] - g["forecast_high"]).abs().mean()), 3)}
+        for name, g in scored.items()
+    ])
+    out = pd.DataFrame(rows)
+    REPORTS_DIR.mkdir(exist_ok=True)
+    summary.to_csv(REPORTS_DIR / "variants.csv", index=False)
+    out.to_csv(REPORTS_DIR / "variant_significance.csv", index=False)
+    print()
+    print(summary.to_string(index=False))
+    print()
     print(out.to_string(index=False))
     return out
 
